@@ -1,7 +1,7 @@
 package com.campussilencer.app
 
 import android.Manifest
-import android.app.NotificationManager
+import android.app.TimePickerDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.campussilencer.app.audio.AudioModeController
 import com.campussilencer.app.data.AppSettingsRepository
+import com.campussilencer.app.data.HolidayDatabase
 import com.campussilencer.app.data.ShieldMode
 import com.campussilencer.app.service.CampusGeofenceService
 import com.campussilencer.app.service.CellTowerHelper
@@ -38,24 +39,34 @@ class MainActivity : AppCompatActivity() {
     // Top status views
     private lateinit var tvStatus: TextView
     private lateinit var tvRingerMode: TextView
-    private lateinit var tvDistance: TextView
-    private lateinit var tvWifiStatus: TextView
+    private lateinit var tvEngineLabel: TextView
+    private lateinit var tvHolidayStatusBadge: TextView
     private lateinit var tvVolumePercentage: TextView
     private lateinit var progressVolume: ProgressBar
     private lateinit var imgModeIcon: ImageView
 
-    // Mode Selector Tabs
-    private lateinit var btnTabModeA: Button
-    private lateinit var btnTabModeB: Button
-    private lateinit var layoutPlanA: LinearLayout
-    private lateinit var layoutPlanB: LinearLayout
+    // 3 Mode Selector Tabs
+    private lateinit var btnTabOpt1: Button
+    private lateinit var btnTabOpt2: Button
+    private lateinit var btnTabOpt3: Button
+    private lateinit var layoutOption1: LinearLayout
+    private lateinit var layoutOption2: LinearLayout
+    private lateinit var layoutOption3: LinearLayout
 
-    // Plan A Views (Cell Tower)
+    // Option 1 (Cell Tower) Views
     private lateinit var tvConnectedTower: TextView
     private lateinit var tvCollegeTower: TextView
     private lateinit var btnLockCurrentTower: Button
 
-    // Universal Overrides
+    // Option 3 (Holiday & Timings) Views
+    private lateinit var tvDetectedRegion: TextView
+    private lateinit var tvHolidayCountInfo: TextView
+    private lateinit var btnPickStartTime: LinearLayout
+    private lateinit var btnPickEndTime: LinearLayout
+    private lateinit var tvStartTimeVal: TextView
+    private lateinit var tvEndTimeVal: TextView
+
+    // Universal Controls
     private lateinit var layoutLeaveCard: LinearLayout
     private lateinit var switchLeaveToday: Switch
     private lateinit var switchVibrateMode: Switch
@@ -90,21 +101,33 @@ class MainActivity : AppCompatActivity() {
     private fun initViews() {
         tvStatus = findViewById(R.id.tv_current_status)
         tvRingerMode = findViewById(R.id.tv_ringer_mode)
-        tvDistance = findViewById(R.id.tv_campus_distance)
-        tvWifiStatus = findViewById(R.id.tv_wifi_status)
+        tvEngineLabel = findViewById(R.id.tv_engine_label)
+        tvHolidayStatusBadge = findViewById(R.id.tv_holiday_status_badge)
         tvVolumePercentage = findViewById(R.id.tv_volume_percentage)
         progressVolume = findViewById(R.id.progress_volume)
         imgModeIcon = findViewById(R.id.img_mode_icon)
 
-        btnTabModeA = findViewById(R.id.btn_tab_mode_a)
-        btnTabModeB = findViewById(R.id.btn_tab_mode_b)
-        layoutPlanA = findViewById(R.id.layout_plan_a)
-        layoutPlanB = findViewById(R.id.layout_plan_b)
+        btnTabOpt1 = findViewById(R.id.btn_tab_opt_1)
+        btnTabOpt2 = findViewById(R.id.btn_tab_opt_2)
+        btnTabOpt3 = findViewById(R.id.btn_tab_opt_3)
+        layoutOption1 = findViewById(R.id.layout_option_1)
+        layoutOption2 = findViewById(R.id.layout_option_2)
+        layoutOption3 = findViewById(R.id.layout_option_3)
 
+        // Option 1
         tvConnectedTower = findViewById(R.id.tv_connected_tower)
         tvCollegeTower = findViewById(R.id.tv_college_tower)
         btnLockCurrentTower = findViewById(R.id.btn_lock_current_tower)
 
+        // Option 3
+        tvDetectedRegion = findViewById(R.id.tv_detected_region)
+        tvHolidayCountInfo = findViewById(R.id.tv_holiday_count_info)
+        btnPickStartTime = findViewById(R.id.btn_pick_start_time)
+        btnPickEndTime = findViewById(R.id.btn_pick_end_time)
+        tvStartTimeVal = findViewById(R.id.tv_start_time_val)
+        tvEndTimeVal = findViewById(R.id.tv_end_time_val)
+
+        // Universal
         layoutLeaveCard = findViewById(R.id.layout_leave_card)
         switchLeaveToday = findViewById(R.id.switch_leave_today)
         switchVibrateMode = findViewById(R.id.switch_vibrate_mode)
@@ -122,30 +145,69 @@ class MainActivity : AppCompatActivity() {
         tvConnectedTower.text = "Cell ID #$activeTower"
         tvCollegeTower.text = "Cell ID #${config.collegeCellTowerId}"
 
-        // Set initial tab selection
+        updateTimeDisplays(config.collegeStartHour, config.collegeStartMinute, config.collegeEndHour, config.collegeEndMinute)
+
+        // Display current Holiday status for Option 3
+        val holidayCheck = HolidayDatabase.checkHoliday()
+        if (holidayCheck.first) {
+            tvHolidayStatusBadge.text = "🌴 " + holidayCheck.second
+            tvHolidayStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.amber_400))
+        } else {
+            tvHolidayStatusBadge.text = "Working Day"
+            tvHolidayStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
+        }
+
+        // Set active mode tab
         switchModeTab(config.selectedMode)
     }
 
     private fun setupListeners() {
-        // Tab switching between Plan A and Plan B
-        btnTabModeA.setOnClickListener {
+        // Tab switching between Option 1, 2, and 3
+        btnTabOpt1.setOnClickListener {
             settingsRepo.setSelectedMode(ShieldMode.CELL_TOWER)
             switchModeTab(ShieldMode.CELL_TOWER)
-            Toast.makeText(this, "Plan A Active: Mobile Cell Tower Shield (Zero GPS)", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Option 1 Selected: Cell Tower Shield (Zero GPS)", Toast.LENGTH_SHORT).show()
         }
 
-        btnTabModeB.setOnClickListener {
-            settingsRepo.setSelectedMode(ShieldMode.TIMETABLE)
-            switchModeTab(ShieldMode.TIMETABLE)
-            Toast.makeText(this, "Plan B Active: Smart Timetable (08:45 AM - 04:30 PM)", Toast.LENGTH_SHORT).show()
+        btnTabOpt2.setOnClickListener {
+            settingsRepo.setSelectedMode(ShieldMode.NOTIFY_BASED)
+            switchModeTab(ShieldMode.NOTIFY_BASED)
+            Toast.makeText(this, "Option 2 Selected: Morning Smart Notify", Toast.LENGTH_SHORT).show()
         }
 
-        // Plan A: Lock Current Tower
+        btnTabOpt3.setOnClickListener {
+            settingsRepo.setSelectedMode(ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE)
+            switchModeTab(ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE)
+            Toast.makeText(this, "Option 3 Selected: One-Time Location & Auto-Holiday Engine", Toast.LENGTH_SHORT).show()
+        }
+
+        // Option 3: Time Pickers
+        btnPickStartTime.setOnClickListener {
+            val config = settingsRepo.getConfig()
+            TimePickerDialog(this, { _, hourOfDay, minute ->
+                settingsRepo.setCollegeTimes(hourOfDay, minute, config.collegeEndHour, config.collegeEndMinute)
+                updateTimeDisplays(hourOfDay, minute, config.collegeEndHour, config.collegeEndMinute)
+                Toast.makeText(this, "College Start Time updated!", Toast.LENGTH_SHORT).show()
+                evaluateCurrentState()
+            }, config.collegeStartHour, config.collegeStartMinute, false).show()
+        }
+
+        btnPickEndTime.setOnClickListener {
+            val config = settingsRepo.getConfig()
+            TimePickerDialog(this, { _, hourOfDay, minute ->
+                settingsRepo.setCollegeTimes(config.collegeStartHour, config.collegeStartMinute, hourOfDay, minute)
+                updateTimeDisplays(config.collegeStartHour, config.collegeStartMinute, hourOfDay, minute)
+                Toast.makeText(this, "College End Time updated!", Toast.LENGTH_SHORT).show()
+                evaluateCurrentState()
+            }, config.collegeEndHour, config.collegeEndMinute, false).show()
+        }
+
+        // Option 1: Lock Current Tower
         btnLockCurrentTower.setOnClickListener {
             val currentTower = CellTowerHelper.getCurrentCellTowerId(this)
             settingsRepo.setCollegeCellTowerId(currentTower)
             tvCollegeTower.text = "Cell ID #$currentTower"
-            Toast.makeText(this, "✅ Saved Tower #$currentTower as College Campus! Zero GPS ready.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "✅ Saved Tower #$currentTower as College Campus! Zero GPS muting ready.", Toast.LENGTH_LONG).show()
             evaluateCurrentState()
         }
 
@@ -199,25 +261,50 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateTimeDisplays(startHour: Int, startMin: Int, endHour: Int, endMin: Int) {
+        val startFormatted = formatTime12H(startHour, startMin)
+        val endFormatted = formatTime12H(endHour, endMin)
+        tvStartTimeVal.text = "$startFormatted ✏️"
+        tvEndTimeVal.text = "$endFormatted ✏️"
+    }
+
+    private fun formatTime12H(hour: Int, min: Int): String {
+        val amPm = if (hour >= 12) "PM" else "AM"
+        val h12 = if (hour == 0) 12 else if (hour > 12) hour - 12 else hour
+        return String.format("%02d:%02d %s", h12, min, amPm)
+    }
+
     private fun switchModeTab(mode: ShieldMode) {
-        if (mode == ShieldMode.CELL_TOWER) {
-            btnTabModeA.setBackgroundResource(R.drawable.bg_tab_active)
-            btnTabModeA.setTextColor(ContextCompat.getColor(this, android.R.color.black))
-            btnTabModeB.setBackgroundResource(R.drawable.bg_tab_inactive)
-            btnTabModeB.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
-            layoutPlanA.visibility = View.VISIBLE
-            layoutPlanB.visibility = View.GONE
-            tvDistance.text = "Active Engine: Plan A (Cell Tower)"
-            tvWifiStatus.text = "Zero GPS • 100% Privacy"
-        } else {
-            btnTabModeB.setBackgroundResource(R.drawable.bg_tab_active)
-            btnTabModeB.setTextColor(ContextCompat.getColor(this, android.R.color.black))
-            btnTabModeA.setBackgroundResource(R.drawable.bg_tab_inactive)
-            btnTabModeA.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
-            layoutPlanB.visibility = View.VISIBLE
-            layoutPlanA.visibility = View.GONE
-            tvDistance.text = "Active Engine: Plan B (Timetable)"
-            tvWifiStatus.text = "Auto-Unmute at 04:30 PM"
+        btnTabOpt1.setBackgroundResource(R.drawable.bg_tab_inactive)
+        btnTabOpt1.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
+        btnTabOpt2.setBackgroundResource(R.drawable.bg_tab_inactive)
+        btnTabOpt2.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
+        btnTabOpt3.setBackgroundResource(R.drawable.bg_tab_inactive)
+        btnTabOpt3.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
+
+        layoutOption1.visibility = View.GONE
+        layoutOption2.visibility = View.GONE
+        layoutOption3.visibility = View.GONE
+
+        when (mode) {
+            ShieldMode.CELL_TOWER -> {
+                btnTabOpt1.setBackgroundResource(R.drawable.bg_tab_active)
+                btnTabOpt1.setTextColor(ContextCompat.getColor(this, android.R.color.black))
+                layoutOption1.visibility = View.VISIBLE
+                tvEngineLabel.text = "Active Engine: Option 1 (Tower Shield)"
+            }
+            ShieldMode.NOTIFY_BASED -> {
+                btnTabOpt2.setBackgroundResource(R.drawable.bg_tab_active)
+                btnTabOpt2.setTextColor(ContextCompat.getColor(this, android.R.color.black))
+                layoutOption2.visibility = View.VISIBLE
+                tvEngineLabel.text = "Active Engine: Option 2 (Morning Notify)"
+            }
+            ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE -> {
+                btnTabOpt3.setBackgroundResource(R.drawable.bg_tab_active)
+                btnTabOpt3.setTextColor(ContextCompat.getColor(this, android.R.color.black))
+                layoutOption3.visibility = View.VISIBLE
+                tvEngineLabel.text = "Active Engine: Option 3 (Auto Holiday & Hours)"
+            }
         }
         evaluateCurrentState()
     }
@@ -242,33 +329,55 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (config.selectedMode == ShieldMode.CELL_TOWER) {
-            val currentTower = CellTowerHelper.getCurrentCellTowerId(this)
-            tvConnectedTower.text = "Cell ID #$currentTower"
-            if (currentTower == config.collegeCellTowerId) {
-                tvStatus.text = "Status: Inside College (Tower Matched)"
-                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.amber_400))
-                imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.amber_400))
-                progressVolume.progress = 0
-                tvVolumePercentage.text = "0% (Muted)"
-            } else {
-                tvStatus.text = "Status: Outside College (Home Safe)"
-                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
-                imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.emerald_500))
-                progressVolume.progress = 80
-                tvVolumePercentage.text = "80% (Normal)"
+        when (config.selectedMode) {
+            ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE -> {
+                val holiday = HolidayDatabase.checkHoliday()
+                if (holiday.first) {
+                    tvStatus.text = "Status: ${holiday.second} (Loud)"
+                    tvStatus.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
+                    imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.emerald_500))
+                    progressVolume.progress = 80
+                    tvVolumePercentage.text = "80% (Normal)"
+                    return
+                }
+
+                // Working day check against custom college start and end times
+                val nowTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+                if (nowTime >= config.collegeStartTime && nowTime <= config.collegeEndTime) {
+                    tvStatus.text = "Status: College Hours (Phone Muted)"
+                    tvStatus.setTextColor(ContextCompat.getColor(this, R.color.amber_400))
+                    imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.amber_400))
+                    progressVolume.progress = 0
+                    tvVolumePercentage.text = "0% (Muted)"
+                } else {
+                    tvStatus.text = "Status: Outside College Hours (Normal)"
+                    tvStatus.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
+                    imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.emerald_500))
+                    progressVolume.progress = 80
+                    tvVolumePercentage.text = "80% (Normal)"
+                }
             }
-        } else {
-            // Plan B: Timetable evaluation
-            val nowTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
-            if (nowTime >= config.collegeStartTime && nowTime <= config.collegeEndTime) {
-                tvStatus.text = "Status: Class in Session (Phone Muted)"
-                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.amber_400))
-                imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.amber_400))
-                progressVolume.progress = 0
-                tvVolumePercentage.text = "0% (Muted)"
-            } else {
-                tvStatus.text = "Status: Outside Class Hours (Normal)"
+
+            ShieldMode.CELL_TOWER -> {
+                val currentTower = CellTowerHelper.getCurrentCellTowerId(this)
+                tvConnectedTower.text = "Cell ID #$currentTower"
+                if (currentTower == config.collegeCellTowerId) {
+                    tvStatus.text = "Status: College Tower Matched (Muted)"
+                    tvStatus.setTextColor(ContextCompat.getColor(this, R.color.amber_400))
+                    imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.amber_400))
+                    progressVolume.progress = 0
+                    tvVolumePercentage.text = "0% (Muted)"
+                } else {
+                    tvStatus.text = "Status: Outside College (Home Safe)"
+                    tvStatus.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
+                    imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.emerald_500))
+                    progressVolume.progress = 80
+                    tvVolumePercentage.text = "80% (Normal)"
+                }
+            }
+
+            ShieldMode.NOTIFY_BASED -> {
+                tvStatus.text = "Status: Smart Notify Active"
                 tvStatus.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
                 imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.emerald_500))
                 progressVolume.progress = 80
@@ -284,7 +393,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             startService(serviceIntent)
         }
-        Toast.makeText(this, "🚀 Smart Campus Protection Shield Started", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "🚀 Smart Protection Shield Started", Toast.LENGTH_SHORT).show()
     }
 
     private fun refreshUi() {
@@ -296,7 +405,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUiState(status: String, distance: Double) {
         tvStatus.text = "Status: $status"
-        tvDistance.text = "📍 Distance: ${distance.toInt()}m"
         val ringerName = audioController.getCurrentRingerModeName()
         tvRingerMode.text = "Current Mode: $ringerName"
 

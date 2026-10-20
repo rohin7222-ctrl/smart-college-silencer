@@ -43,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SmartCampusSilencer-APK
-          path: ./android/app/build/outputs/apk/debug/app-debug.apk
+          path: ./android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
 
@@ -52,31 +52,26 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
           tag_name: v1.0.0
-          name: "🎓 Smart Campus Silencer v1.0.0 (Direct APK)"
+          name: "🎓 Smart Campus Silencer (Direct APK Download)"
           draft: false
           prerelease: false
           body: |
-            ## 📱 Smart Campus Silencer - Mobile Direct Download
+            ## 📱 Smart Campus Silencer - Official APK Release
             
             ### 📥 Download Link:
-            Click **`app-debug.apk`** below to download directly onto your Android phone!
+            Click **`SmartCampusSilencer.apk`** below to download directly onto your mobile phone!
             
             ---
-            ### 🚀 How to Install on Android Phone:
-            1. Download the **`app-debug.apk`** file below.
-            2. Open the downloaded file from your mobile notifications or Downloads folder.
-            3. If prompted, enable **"Allow from this source"** / **"Install unknown apps"**.
-            4. Tap **Install** and open **Smart Campus Silencer**!
-            5. Grant **DND (Do Not Disturb) Access** and click **"Start Background Geofencing"**.
-            
-            ---
-            ### ✨ Core Features:
-            - 🎯 **GPS Geofencing**: Automatically switches phone to Silent/Vibrate upon entering college campus.
-            - 🏡 **Auto Restore at Home**: Instantly restores normal ringing volume when you get back home.
-            - 🏖️ **Taking Leave Today**: One-tap pause so your phone NEVER mutes on sick leaves or holidays.
-            - 📶 **College Wi-Fi Trigger**: Instant zero-battery-drain muting.
-            - ⚡ **C++ Native Geo Engine**: Ultra-low battery consumption.
+            ### 🚀 How to Install on Android:
+            1. Download **`SmartCampusSilencer.apk`** below.
+            2. Open the downloaded file from mobile Downloads or notification.
+            3. Tap **Install** (Allow *Install Unknown Apps* if prompted).
+            4. Grant **DND (Do Not Disturb) Permission** in app.
+            5. Select your preferred mode:
+               - **Option 1**: 📡 Mobile Cell Tower Shield (Zero GPS, Zero Wi-Fi)
+               - **Option 2**: 🔔 Morning Smart Notify / Departure Check
+               - **Option 3**: 🗓️ One-Time Location & Auto State Holidays + Custom Timetable
           files: |
-            ./android/app/build/outputs/apk/debug/app-debug.apk
+            ./android/app/build/outputs/apk/debug/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

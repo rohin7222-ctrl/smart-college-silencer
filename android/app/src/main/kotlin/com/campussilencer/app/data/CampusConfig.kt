@@ -1,22 +1,29 @@
 package com.campussilencer.app.data
 
 /**
- * Data models for Smart Campus Silencer with Dual-Shield Modes:
- * Mode 1 (Plan A): Mobile Cell Tower ID (Zero GPS, Zero Wi-Fi, 100% Privacy)
- * Mode 2 (Plan B): Smart Academic Timetable & Departure/Home-Return Auto-Timer
+ * Data models for Smart Campus Silencer with 3 Smart Options:
+ * Option 1: 📡 Mobile Cell Tower Shield (Cell Tower ID based, zero GPS)
+ * Option 2: 🔔 Morning Smart Notify / Departure Check (Prompt based)
+ * Option 3: 🗓️ One-Time Location & Auto-Holiday Engine + Custom Hours
  */
-enum class ShieldMode(val title: String, val description: String) {
-    CELL_TOWER("Mode 1: Cell Tower Shield", "Zero GPS • Zero Wi-Fi • Detects College Mobile Tower"),
-    TIMETABLE("Mode 2: Smart Timetable", "Schedule-Based • Auto-Unmute at 04:30 PM & Home")
+enum class ShieldMode(val title: String, val subtitle: String) {
+    CELL_TOWER("Option 1: Tower Shield", "Zero GPS • Zero Wi-Fi • Mobile Tower Match"),
+    NOTIFY_BASED("Option 2: Morning Notify", "Morning Departure Notification (08:00 AM)"),
+    ONE_TIME_HOLIDAY_SCHEDULE("Option 3: Auto Holiday & Hours", "One-Time Location • Gov Holidays • Custom Hours")
 }
 
 data class CampusConfig(
     val collegeName: String = "Anna University / College Campus",
-    val selectedMode: ShieldMode = ShieldMode.CELL_TOWER,
-    val collegeCellTowerId: String = "41528",
-    val currentConnectedTowerId: String = "41528",
+    val selectedMode: ShieldMode = ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE,
+    val userRegionState: String = "Tamil Nadu, India",
     val collegeStartTime: String = "08:45",
     val collegeEndTime: String = "16:30",
+    val collegeStartHour: Int = 8,
+    val collegeStartMinute: Int = 45,
+    val collegeEndHour: Int = 16,
+    val collegeEndMinute: Int = 30,
+    val collegeCellTowerId: String = "41528",
+    val currentConnectedTowerId: String = "41528",
     val collegeLatitude: Double = 13.0102,
     val collegeLongitude: Double = 80.2356,
     val campusRadiusMeters: Double = 400.0,

@@ -89,7 +89,42 @@ class CampusGeofenceService : Service(), LocationListener {
             return
         }
 
-        // Mode 1 (Plan A): Cell Tower ID Detection
+        // Option 3: One-Time Location & Auto-Holiday Engine + Custom Timetable
+        if (config.selectedMode == com.campussilencer.app.data.ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE) {
+            val holiday = com.campussilencer.app.data.HolidayDatabase.checkHoliday()
+            if (holiday.first) {
+                currentState = SilencerState.HOLIDAY_MODE
+                if (audioController.isCampusMuted) {
+                    audioController.restoreNormalRinger()
+                }
+                updateNotification("🌴 ${holiday.second}: Ringer Active")
+                broadcastState(currentState, 0.0)
+                return
+            }
+
+            val nowTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+            val isClassHours = (nowTime >= config.collegeStartTime && nowTime <= config.collegeEndTime)
+
+            if (isClassHours) {
+                if (currentState != SilencerState.INSIDE_CAMPUS) {
+                    currentState = SilencerState.INSIDE_CAMPUS
+                    Log.i(TAG, "Option 3: College Hours Active ($nowTime). Auto-muting...")
+                    audioController.muteForCampus(config.vibrateOnly)
+                    updateNotification("College Hours ($nowTime): Phone Muted")
+                }
+            } else {
+                if (currentState == SilencerState.INSIDE_CAMPUS) {
+                    Log.i(TAG, "Option 3: College Hours Ended ($nowTime). Restoring ringer...")
+                    audioController.restoreNormalRinger()
+                    currentState = SilencerState.AT_HOME
+                    updateNotification("College Hours Ended: Normal Ringer Restored")
+                }
+            }
+            broadcastState(currentState, 0.0)
+            return
+        }
+
+        // Option 1: Mobile Cell Tower ID Detection (Zero GPS)
         if (config.selectedMode == com.campussilencer.app.data.ShieldMode.CELL_TOWER) {
             val currentTower = CellTowerHelper.getCurrentCellTowerId(this)
             val isAtCollegeTower = (currentTower == config.collegeCellTowerId)
@@ -97,40 +132,16 @@ class CampusGeofenceService : Service(), LocationListener {
             if (isAtCollegeTower) {
                 if (currentState != SilencerState.INSIDE_CAMPUS) {
                     currentState = SilencerState.INSIDE_CAMPUS
-                    Log.i(TAG, "Plan A: College Cell Tower Detected! Auto-muting...")
+                    Log.i(TAG, "Option 1: College Cell Tower Detected! Auto-muting...")
                     audioController.muteForCampus(config.vibrateOnly)
                     updateNotification("Inside College (Tower #$currentTower): Phone Muted")
                 }
             } else {
                 if (currentState == SilencerState.INSIDE_CAMPUS) {
-                    Log.i(TAG, "Plan A: Departed College Tower. Restoring ringer...")
+                    Log.i(TAG, "Option 1: Departed College Tower. Restoring ringer...")
                     audioController.restoreNormalRinger()
                     currentState = SilencerState.AT_HOME
                     updateNotification("Left College: Normal Ringer Restored")
-                }
-            }
-            broadcastState(currentState, 0.0)
-            return
-        }
-
-        // Mode 2 (Plan B): Smart Timetable Schedule Detection
-        if (config.selectedMode == com.campussilencer.app.data.ShieldMode.TIMETABLE) {
-            val nowTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
-            val isClassHours = (nowTime >= config.collegeStartTime && nowTime <= config.collegeEndTime)
-
-            if (isClassHours) {
-                if (currentState != SilencerState.INSIDE_CAMPUS) {
-                    currentState = SilencerState.INSIDE_CAMPUS
-                    Log.i(TAG, "Plan B: Timetable Class Active ($nowTime). Auto-muting...")
-                    audioController.muteForCampus(config.vibrateOnly)
-                    updateNotification("Class Hours Active ($nowTime): Phone Muted")
-                }
-            } else {
-                if (currentState == SilencerState.INSIDE_CAMPUS) {
-                    Log.i(TAG, "Plan B: Class Hours Ended ($nowTime). Restoring ringer...")
-                    audioController.restoreNormalRinger()
-                    currentState = SilencerState.AT_HOME
-                    updateNotification("Class Ended: Normal Ringer Restored")
                 }
             }
             broadcastState(currentState, 0.0)

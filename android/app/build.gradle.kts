@@ -41,6 +41,13 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    applicationVariants.all {
+        outputs.all {
+            val output = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output?.outputFileName = "SmartCampusSilencer.apk"
+        }
+    }
 }
 
 dependencies {
