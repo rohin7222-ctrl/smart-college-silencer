@@ -5,19 +5,19 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.campussilencer.app.data.AppSettingsRepository
+import com.campussilencer.app.data.HolidayDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 /**
  * SmartSilencerWorker (Kotlin Layer -> WorkManager)
- * Daily synchronization worker that checks academic calendar holidays and
- * timetable exceptions via the Python companion backend or local rules.
+ * Daily synchronization worker that runs once after midnight.
+ * Reschedules exact alarms, evaluates holidays, and ensures expired leaves are cleaned up.
+ * 100% offline with zero hardcoded emulator URLs.
  */
 class SmartSilencerWorker(
     appContext: Context,
@@ -26,48 +26,26 @@ class SmartSilencerWorker(
 
     companion object {
         private const val TAG = "SmartSilencerWorker"
-        private const val COMPANION_API_URL = "http://10.0.2.2:8000/api/holidays/today"
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val repository = AppSettingsRepository(applicationContext)
-        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val config = repository.getConfig()
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
-        Log.i(TAG, "Running daily holiday check for date: $todayStr")
+        Log.i(TAG, "Running daily midnight maintenance for date: $todayStr")
 
-        try {
-            // Attempt to sync with local Python companion server
-            val url = URL(COMPANION_API_URL)
-            val connection = (url.openConnection() as HttpURLConnection).apply {
-                connectTimeout = 3000
-                readTimeout = 3000
-                requestMethod = "GET"
-            }
+        // 1. Reschedule alarms for the new day
+        CampusAlarmScheduler.scheduleAllAlarms(applicationContext, config)
 
-            if (connection.responseCode == 200) {
-                val response = connection.inputStream.bufferedReader().readText()
-                val json = JSONObject(response)
-                val isHoliday = json.optBoolean("is_holiday", false)
-                val holidayName = json.optString("holiday_name", "")
+        // 2. Holiday and weekday check
+        val customHolidays = repository.getCustomHolidays()
+        val holidayCheck = HolidayDatabase.checkHoliday(Date(), config.selectedWeekdays, customHolidays)
 
-                if (isHoliday) {
-                    Log.i(TAG, "Today is an academic holiday: $holidayName. Pausing college muting.")
-                    repository.setTakingLeaveToday(true)
-                } else {
-                    Log.i(TAG, "Today is a regular college working day.")
-                    repository.setTakingLeaveToday(false)
-                }
-                return@withContext Result.success()
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Companion server unreachable, using offline calendar rules: ${e.message}")
-        }
-
-        // Offline Rule: If today is Sunday, college is closed
-        val dayOfWeek = SimpleDateFormat("EEEE", Locale.US).format(Date())
-        if (dayOfWeek.equals("Sunday", ignoreCase = true)) {
-            Log.i(TAG, "Sunday detected: Auto-pausing silent mode.")
-            repository.setTakingLeaveToday(true)
+        if (holidayCheck.first) {
+            Log.i(TAG, "Today is an off day: ${holidayCheck.second}.")
+        } else {
+            Log.i(TAG, "Today is a scheduled college working day.")
         }
 
         Result.success()

@@ -10,13 +10,14 @@ import android.util.Log;
 /**
  * AudioModeController (Java Layer)
  * Handles Android system volume manipulation, Silent/Vibrate mode switching,
- * and DND (Do Not Disturb) permission checks.
+ * remembers and restores user's exact previous ringer mode and ringer volume.
  */
 public class AudioModeController {
 
     private static final String TAG = "AudioModeController";
     private static final String PREF_NAME = "campus_audio_prefs";
     private static final String KEY_SAVED_VOLUME = "saved_ringer_volume";
+    private static final String KEY_SAVED_RINGER_MODE = "saved_ringer_mode";
     private static final String KEY_CURRENT_STATE = "is_campus_muted";
 
     private final Context context;
@@ -43,10 +44,10 @@ public class AudioModeController {
     }
 
     /**
-     * Puts the phone in Mute / Silent / Vibrate mode.
-     * Remembers the current ringtone volume so it can be restored when coming home.
+     * Puts the phone in Mute / Vibrate mode.
+     * Remembers the current ringtone mode and volume so it can be restored exactly when leaving college.
      *
-     * @param vibrateOnly true to switch to Vibrate mode, false for Complete Silent mode.
+     * @param vibrateOnly true to switch to Vibrate mode (incoming calls buzz in pocket), false for Complete Silent.
      * @return true if successfully muted, false if DND permission is missing.
      */
     public boolean muteForCampus(boolean vibrateOnly) {
@@ -55,20 +56,26 @@ public class AudioModeController {
             return false;
         }
 
-        // Save current volume level before muting
+        // Save current ringer mode and volume before muting
+        int currentRingerMode = audioManager.getRingerMode();
         int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
-        if (currentVolume > 0) {
-            prefs.edit().putInt(KEY_SAVED_VOLUME, currentVolume).apply();
-            Log.d(TAG, "Saved previous ringer volume: " + currentVolume);
+
+        // Only save if not already in campus muted state
+        if (!isCampusMuted()) {
+            prefs.edit()
+                .putInt(KEY_SAVED_RINGER_MODE, currentRingerMode)
+                .putInt(KEY_SAVED_VOLUME, currentVolume)
+                .apply();
+            Log.d(TAG, "Saved previous ringer mode: " + currentRingerMode + ", volume: " + currentVolume);
         }
 
         try {
             if (vibrateOnly) {
                 audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-                Log.i(TAG, "Switched to VIBRATE mode successfully.");
+                Log.i(TAG, "Switched to VIBRATE mode (calls will buzz, zero sound).");
             } else {
                 audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-                Log.i(TAG, "Switched to SILENT mode successfully.");
+                Log.i(TAG, "Switched to SILENT mode.");
             }
             prefs.edit().putBoolean(KEY_CURRENT_STATE, true).apply();
             return true;
@@ -79,7 +86,7 @@ public class AudioModeController {
     }
 
     /**
-     * Restores normal ringer mode and loudness when user leaves college or arrives home.
+     * Restores previous ringer mode and exact volume level.
      *
      * @return true if successfully restored, false otherwise.
      */
@@ -90,18 +97,21 @@ public class AudioModeController {
         }
 
         try {
-            audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            int savedRingerMode = prefs.getInt(KEY_SAVED_RINGER_MODE, AudioManager.RINGER_MODE_NORMAL);
             int savedVolume = prefs.getInt(KEY_SAVED_VOLUME, -1);
             int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
 
-            if (savedVolume > 0 && savedVolume <= maxVolume) {
-                audioManager.setStreamVolume(AudioManager.STREAM_RING, savedVolume, AudioManager.FLAG_SHOW_UI);
-                Log.i(TAG, "Restored saved ringer volume: " + savedVolume);
-            } else {
-                // Default to 70% volume if no previous volume recorded
-                int defaultVol = (int) (maxVolume * 0.7);
-                audioManager.setStreamVolume(AudioManager.STREAM_RING, defaultVol, AudioManager.FLAG_SHOW_UI);
-                Log.i(TAG, "Restored default ringer volume: " + defaultVol);
+            audioManager.setRingerMode(savedRingerMode);
+
+            if (savedRingerMode == AudioManager.RINGER_MODE_NORMAL) {
+                if (savedVolume >= 0 && savedVolume <= maxVolume) {
+                    audioManager.setStreamVolume(AudioManager.STREAM_RING, savedVolume, 0);
+                    Log.i(TAG, "Restored exact saved ringer volume: " + savedVolume);
+                } else {
+                    int defaultVol = (int) (maxVolume * 0.7);
+                    audioManager.setStreamVolume(AudioManager.STREAM_RING, defaultVol, 0);
+                    Log.i(TAG, "Restored default ringer volume: " + defaultVol);
+                }
             }
 
             prefs.edit().putBoolean(KEY_CURRENT_STATE, false).apply();
@@ -133,5 +143,17 @@ public class AudioModeController {
             default:
                 return "Unknown";
         }
+    }
+
+    public int getCurrentVolume() {
+        return audioManager.getStreamVolume(AudioManager.STREAM_RING);
+    }
+
+    public int getMaxVolume() {
+        return audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+    }
+
+    public int getSavedVolume() {
+        return prefs.getInt(KEY_SAVED_VOLUME, -1);
     }
 }

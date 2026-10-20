@@ -2,6 +2,7 @@ package com.campussilencer.app.ui
 
 import android.content.Context
 import android.os.PowerManager
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.campussilencer.app.data.ThemeModePreference
 
@@ -36,12 +37,28 @@ object PowerSaveThemeHelper {
     }
 
     /**
-     * Applies the theme if changed, returns true if night mode changed
+     * Applies the theme globally
      */
     fun applyTheme(context: Context, preference: ThemeModePreference): Boolean {
         val targetMode = resolveNightMode(context, preference)
         if (AppCompatDelegate.getDefaultNightMode() != targetMode) {
             AppCompatDelegate.setDefaultNightMode(targetMode)
+            return true
+        }
+        return false
+    }
+
+    /**
+     * Applies the theme directly to the specific activity instance to ensure immediate visual switch
+     */
+    fun applyThemeToActivity(activity: AppCompatActivity, preference: ThemeModePreference): Boolean {
+        val targetMode = resolveNightMode(activity, preference)
+        val defaultChanged = AppCompatDelegate.getDefaultNightMode() != targetMode
+        val localChanged = activity.delegate.localNightMode != targetMode
+
+        if (defaultChanged || localChanged) {
+            AppCompatDelegate.setDefaultNightMode(targetMode)
+            activity.delegate.localNightMode = targetMode
             return true
         }
         return false

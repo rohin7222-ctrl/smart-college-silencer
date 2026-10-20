@@ -11,6 +11,11 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
 
+    <!-- Exact Alarm permissions for Option 3 & Option 2 scheduled triggers -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -44,7 +49,7 @@
             android:exported="false"
             android:foregroundServiceType="location" />
 
-        <!-- Java Receiver: Boot Auto-Restart -->
+        <!-- Java Receiver: Boot Auto-Restart & Exact Alarm Reschedule -->
         <receiver
             android:name=".receiver.BootCompletedReceiver"
             android:exported="true">
@@ -54,13 +59,25 @@
             </intent-filter>
         </receiver>
 
+        <!-- Kotlin Receiver: Exact Alarm Mute / Unmute & Morning Prompts -->
+        <receiver
+            android:name=".service.CampusAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.campussilencer.app.ACTION_START_ALARM" />
+                <action android:name="com.campussilencer.app.ACTION_END_ALARM" />
+                <action android:name="com.campussilencer.app.ACTION_MORNING_PROMPT" />
+                <action android:name="com.campussilencer.app.ACTION_CONFIRM_ATTENDANCE" />
+                <action android:name="com.campussilencer.app.ACTION_MARK_LEAVE" />
+            </intent-filter>
+        </receiver>
+
         <!-- Java Receiver: Wi-Fi Detection -->
         <receiver
             android:name=".audio.WifiStateReceiver"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.net.wifi.STATE_CHANGE" />
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
 

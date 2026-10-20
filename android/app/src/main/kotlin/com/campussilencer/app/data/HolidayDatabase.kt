@@ -7,76 +7,109 @@ import java.util.Locale
 
 /**
  * HolidayDatabase (Option 3 Implementation)
- * Automatically provides State & National Government Holidays based on user's one-time region.
- * Completely offline with 0 internet required!
+ * Stores full yyyy-MM-dd dates per year for State & National Government Holidays.
+ * Supports custom user-defined holidays and selected weekday evaluation (replaces hardcoded Sunday rule).
  */
 object HolidayDatabase {
 
-    // Official State & National Public Holidays for Tamil Nadu & India (2026-2027)
-    val STATE_HOLIDAYS = linkedMapOf(
-        "01-01" to "New Year's Day",
-        "01-14" to "Bhogi Festival",
-        "01-15" to "Pongal / Makar Sankranti",
-        "01-16" to "Thiruvalluvar Day",
-        "01-17" to "Uzhavar Thirunal",
-        "01-26" to "Republic Day (National Holiday)",
-        "02-01" to "Thaipusam Festival",
-        "02-15" to "Maha Shivaratri",
-        "03-20" to "Telugu New Year (Ugadi)",
-        "03-21" to "Eid-ul-Fitr (Ramzan)",
-        "04-03" to "Good Friday",
-        "04-14" to "Tamil New Year / Dr. B.R. Ambedkar Jayanti",
-        "04-20" to "Mahavir Jayanti",
-        "05-01" to "May Day (Labour Day)",
-        "05-28" to "Bakrid (Eid-al-Adha)",
-        "06-26" to "Muharram",
-        "08-15" to "Independence Day (National Holiday)",
-        "09-04" to "Krishna Jayanti (Gokulashtami)",
-        "09-14" to "Vinayaka Chathurthi",
-        "09-26" to "Milad-un-Nabi (Prophet Birthday)",
-        "10-02" to "Mahatma Gandhi Jayanti",
-        "10-19" to "Ayutha Pooja",
-        "10-20" to "Vijaya Dasami",
-        "11-08" to "Deepavali Festival",
-        "12-25" to "Christmas Day"
+    // Official State & National Public Holidays with full yyyy-MM-dd dates
+    private val BASE_HOLIDAYS_MAP = linkedMapOf(
+        // 2026 Holidays
+        "2026-01-01" to "New Year's Day",
+        "2026-01-14" to "Bhogi Festival",
+        "2026-01-15" to "Pongal / Makar Sankranti",
+        "2026-01-16" to "Thiruvalluvar Day",
+        "2026-01-17" to "Uzhavar Thirunal",
+        "2026-01-26" to "Republic Day (National Holiday)",
+        "2026-02-01" to "Thaipusam Festival",
+        "2026-02-15" to "Maha Shivaratri",
+        "2026-03-20" to "Telugu New Year (Ugadi)",
+        "2026-03-21" to "Eid-ul-Fitr (Ramzan)",
+        "2026-04-03" to "Good Friday",
+        "2026-04-14" to "Tamil New Year / Dr. B.R. Ambedkar Jayanti",
+        "2026-04-20" to "Mahavir Jayanti",
+        "2026-05-01" to "May Day (Labour Day)",
+        "2026-05-28" to "Bakrid (Eid-al-Adha)",
+        "2026-06-26" to "Muharram",
+        "2026-08-15" to "Independence Day (National Holiday)",
+        "2026-09-04" to "Krishna Jayanti (Gokulashtami)",
+        "2026-09-14" to "Vinayaka Chathurthi",
+        "2026-09-26" to "Milad-un-Nabi (Prophet Birthday)",
+        "2026-10-02" to "Mahatma Gandhi Jayanti",
+        "2026-10-19" to "Ayutha Pooja",
+        "2026-10-20" to "Vijaya Dasami",
+        "2026-11-08" to "Deepavali Festival",
+        "2026-12-25" to "Christmas Day",
+
+        // 2027 Holidays (Extended projection)
+        "2027-01-01" to "New Year's Day",
+        "2027-01-15" to "Pongal",
+        "2027-01-26" to "Republic Day",
+        "2027-08-15" to "Independence Day",
+        "2027-10-02" to "Gandhi Jayanti",
+        "2027-10-29" to "Deepavali Festival",
+        "2027-12-25" to "Christmas Day"
     )
 
     /**
-     * Checks if given date is a Government Public Holiday or Sunday.
-     * Returns Pair(isHoliday, reason)
+     * Checks if given date is a Government Holiday or an unselected weekday.
+     * Returns Pair(isHolidayOrOff, reason)
      */
-    fun checkHoliday(date: Date = Date()): Pair<Boolean, String> {
+    fun checkHoliday(
+        date: Date = Date(),
+        selectedWeekdays: Set<Int> = setOf(Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY, Calendar.FRIDAY),
+        customHolidays: Map<String, String> = emptyMap()
+    ): Pair<Boolean, String> {
         val calendar = Calendar.getInstance().apply { time = date }
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        val dayName = SimpleDateFormat("EEEE", Locale.US).format(date)
 
-        // 1. Weekly College Off Check (Sunday is always closed)
-        if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
-            return Pair(true, "Sunday (College Weekend Holiday)")
+        // 1. Check if today is one of the user's selected college weekdays
+        if (!selectedWeekdays.contains(dayOfWeek)) {
+            return Pair(true, "$dayName (Non-College Day)")
         }
 
-        // 2. State & National Government Holidays
-        val monthDay = SimpleDateFormat("MM-dd", Locale.US).format(date)
-        val holidayName = STATE_HOLIDAYS[monthDay]
-        if (holidayName != null) {
-            return Pair(true, "Official Government Holiday: $holidayName")
+        // 2. Check full yyyy-MM-dd date in official holidays
+        val fullDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
+        val officialName = BASE_HOLIDAYS_MAP[fullDate]
+        if (officialName != null) {
+            return Pair(true, "Official Holiday: $officialName")
         }
 
-        return Pair(false, "Regular Working Day")
+        // 3. Check custom user-defined holidays
+        val customName = customHolidays[fullDate]
+        if (customName != null) {
+            return Pair(true, "Custom Holiday: $customName")
+        }
+
+        return Pair(false, "Regular College Working Day")
     }
 
     /**
-     * Gets the next upcoming government public holiday
+     * Returns the full combined list of holidays
      */
-    fun getNextUpcomingHoliday(date: Date = Date()): Pair<String, String> {
-        val currentMonthDay = SimpleDateFormat("MM-dd", Locale.US).format(date)
-        for ((dateKey, name) in STATE_HOLIDAYS) {
-            if (dateKey > currentMonthDay) {
+    fun getAllHolidays(customHolidays: Map<String, String> = emptyMap()): Map<String, String> {
+        val combined = LinkedHashMap<String, String>(BASE_HOLIDAYS_MAP)
+        combined.putAll(customHolidays)
+        return combined
+    }
+
+    /**
+     * Gets next upcoming holiday starting from given date
+     */
+    fun getNextUpcomingHoliday(date: Date = Date(), customHolidays: Map<String, String> = emptyMap()): Pair<String, String> {
+        val currentFull = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
+        val all = getAllHolidays(customHolidays)
+        for ((dateKey, name) in all) {
+            if (dateKey >= currentFull) {
                 return Pair(dateKey, name)
             }
         }
-        // If passed end of year, return first next year
-        val first = STATE_HOLIDAYS.entries.first()
+        val first = all.entries.first()
         return Pair(first.key, first.value)
     }
 
-    fun getTotalHolidaysCount(): Int = STATE_HOLIDAYS.size
+    fun getTotalHolidaysCount(customHolidays: Map<String, String> = emptyMap()): Int {
+        return BASE_HOLIDAYS_MAP.size + customHolidays.size
+    }
 }

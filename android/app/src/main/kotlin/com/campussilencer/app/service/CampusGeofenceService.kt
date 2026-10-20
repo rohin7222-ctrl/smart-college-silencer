@@ -11,20 +11,24 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
-import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.campussilencer.app.MainActivity
 import com.campussilencer.app.audio.AudioModeController
+import com.campussilencer.app.audio.WifiStateReceiver
 import com.campussilencer.app.data.AppSettingsRepository
+import com.campussilencer.app.data.HolidayDatabase
+import com.campussilencer.app.data.ShieldMode
 import com.campussilencer.app.data.SilencerState
 import com.campussilencer.app.nativebridge.NativeGeoEngine
+import java.util.Calendar
+import java.util.Date
 
 /**
  * CampusGeofenceService (Kotlin Layer)
- * Continuous battery-optimized location monitoring service.
- * Utilizes C++ native geo-math for high performance boundary checking.
+ * Battery-optimized background monitoring for Option 1 (Cell Tower) and Geofencing.
+ * Option 3 exact alarms run independently via CampusAlarmScheduler/CampusAlarmReceiver.
  */
 class CampusGeofenceService : Service(), LocationListener {
 
@@ -46,42 +50,54 @@ class CampusGeofenceService : Service(), LocationListener {
 
     override fun onCreate() {
         super.onCreate()
-        Log.i(TAG, "CampusGeofenceService started.")
+        Log.i(TAG, "CampusGeofenceService initialized.")
         audioController = AudioModeController(this)
         settingsRepository = AppSettingsRepository(this)
         locationManager = getSystemService(Context.LOCATION_SERVICE) as? LocationManager
 
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification("Monitoring College Location..."))
+        startForeground(NOTIFICATION_ID, buildNotification("Active College Protection Shield Running"))
 
-        registerLocationUpdates()
+        val config = settingsRepository.getConfig()
+        if (config.enableWifiTrigger) {
+            WifiStateReceiver.registerDynamicNetworkCallback(this)
+        }
+
+        // Only register continuous GPS location updates if Option 1 or GPS fallback is needed
+        if (config.selectedMode == ShieldMode.CELL_TOWER || config.muteOnlyAtCollege) {
+            registerLocationUpdates()
+        }
     }
 
     private fun registerLocationUpdates() {
         try {
-            val config = settingsRepository.getConfig()
-            // Initial conservative interval
             locationManager?.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
-                15000L, // 15 sec
-                10f,    // 10 meters
+                20000L, // 20 sec
+                15f,    // 15 meters
                 this
             )
             locationManager?.requestLocationUpdates(
                 LocationManager.NETWORK_PROVIDER,
-                30000L, // 30 sec fallback
-                20f,
+                45000L, // 45 sec fallback
+                25f,
                 this
             )
         } catch (e: SecurityException) {
-            Log.e(TAG, "Location permission missing", e)
+            Log.e(TAG, "Location permission missing for updates", e)
         }
     }
 
     override fun onLocationChanged(location: Location) {
         val config = settingsRepository.getConfig()
 
-        // Check if user manually opted out for today (e.g., Absent/Leave)
+        if (!config.isProtectionEnabled) {
+            currentState = SilencerState.PROTECTION_PAUSED
+            updateNotification("Protection Paused (Off)")
+            broadcastState(currentState, 0.0)
+            return
+        }
+
         if (config.takingLeaveToday) {
             currentState = SilencerState.LEAVE_MODE
             updateNotification("🏖️ Leave Today Active: Silent mode paused.")
@@ -89,55 +105,41 @@ class CampusGeofenceService : Service(), LocationListener {
             return
         }
 
-        // Option 3: One-Time Location & Auto-Holiday Engine + Custom Timetable
-        if (config.selectedMode == com.campussilencer.app.data.ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE) {
-            val holiday = com.campussilencer.app.data.HolidayDatabase.checkHoliday()
-            if (holiday.first) {
-                currentState = SilencerState.HOLIDAY_MODE
-                if (audioController.isCampusMuted) {
-                    audioController.restoreNormalRinger()
-                }
-                updateNotification("🌴 ${holiday.second}: Ringer Active")
-                broadcastState(currentState, 0.0)
-                return
-            }
+        val calendar = Calendar.getInstance()
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        if (!config.selectedWeekdays.contains(dayOfWeek)) {
+            currentState = SilencerState.HOLIDAY_MODE
+            updateNotification("Non-College Day: Normal Ringer Active")
+            broadcastState(currentState, 0.0)
+            return
+        }
 
-            val nowTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
-            val isClassHours = (nowTime >= config.collegeStartTime && nowTime <= config.collegeEndTime)
-
-            if (isClassHours) {
-                if (currentState != SilencerState.INSIDE_CAMPUS) {
-                    currentState = SilencerState.INSIDE_CAMPUS
-                    Log.i(TAG, "Option 3: College Hours Active ($nowTime). Auto-muting...")
-                    audioController.muteForCampus(config.vibrateOnly)
-                    updateNotification("College Hours ($nowTime): Phone Muted")
-                }
-            } else {
-                if (currentState == SilencerState.INSIDE_CAMPUS) {
-                    Log.i(TAG, "Option 3: College Hours Ended ($nowTime). Restoring ringer...")
-                    audioController.restoreNormalRinger()
-                    currentState = SilencerState.AT_HOME
-                    updateNotification("College Hours Ended: Normal Ringer Restored")
-                }
-            }
+        val holidayCheck = HolidayDatabase.checkHoliday(
+            calendar.time,
+            config.selectedWeekdays,
+            settingsRepository.getCustomHolidays()
+        )
+        if (holidayCheck.first) {
+            currentState = SilencerState.HOLIDAY_MODE
+            updateNotification("🌴 ${holidayCheck.second}: Ringer Active")
             broadcastState(currentState, 0.0)
             return
         }
 
         // Option 1: Mobile Cell Tower ID Detection (Zero GPS)
-        if (config.selectedMode == com.campussilencer.app.data.ShieldMode.CELL_TOWER) {
+        if (config.selectedMode == ShieldMode.CELL_TOWER) {
             val currentTower = CellTowerHelper.getCurrentCellTowerId(this)
             val isAtCollegeTower = (currentTower == config.collegeCellTowerId)
 
             if (isAtCollegeTower) {
-                if (currentState != SilencerState.INSIDE_CAMPUS) {
+                if (!audioController.isCampusMuted) {
                     currentState = SilencerState.INSIDE_CAMPUS
                     Log.i(TAG, "Option 1: College Cell Tower Detected! Auto-muting...")
                     audioController.muteForCampus(config.vibrateOnly)
                     updateNotification("Inside College (Tower #$currentTower): Phone Muted")
                 }
             } else {
-                if (currentState == SilencerState.INSIDE_CAMPUS) {
+                if (audioController.isCampusMuted) {
                     Log.i(TAG, "Option 1: Departed College Tower. Restoring ringer...")
                     audioController.restoreNormalRinger()
                     currentState = SilencerState.AT_HOME
@@ -148,114 +150,86 @@ class CampusGeofenceService : Service(), LocationListener {
             return
         }
 
-        // Fallback: GPS Boundary calculation
-        val distanceToCampus = NativeGeoEngine.calculateDistance(
+        // C++ Native Geo-Math Distance Calculation as fallback
+        val distToCampus = NativeGeoEngine.calculateHaversineDistance(
             location.latitude, location.longitude,
             config.collegeLatitude, config.collegeLongitude
         )
-        lastDistanceToCampus = distanceToCampus
+        lastDistanceToCampus = distToCampus
 
-        // 2. Check if user is inside College Campus Boundary
-        val isInsideCampus = NativeGeoEngine.isInsideCampus(
-            location.latitude, location.longitude,
-            config.collegeLatitude, config.collegeLongitude,
-            config.campusRadiusMeters
-        )
-
-        // 3. Check if user reached Home
-        val isInsideHome = NativeGeoEngine.isInsideCampus(
-            location.latitude, location.longitude,
-            config.homeLatitude, config.homeLongitude,
-            config.homeRadiusMeters
-        )
-
-        Log.d(TAG, "Loc: (${location.latitude}, ${location.longitude}) -> Dist to College: ${distanceToCampus.toInt()}m, Inside: $isInsideCampus")
-
-        if (isInsideCampus) {
-            if (currentState != SilencerState.INSIDE_CAMPUS) {
+        if (distToCampus <= config.campusRadiusMeters) {
+            if (!audioController.isCampusMuted) {
                 currentState = SilencerState.INSIDE_CAMPUS
-                Log.i(TAG, "Entering College Campus! Activating Silent Mode...")
                 audioController.muteForCampus(config.vibrateOnly)
-                updateNotification("Inside College: Phone is Muted (${if (config.vibrateOnly) "Vibrate" else "Silent"})")
-            }
-        } else if (isInsideHome && config.autoRestoreAtHome) {
-            if (currentState != SilencerState.AT_HOME) {
-                currentState = SilencerState.AT_HOME
-                Log.i(TAG, "Arrived Home! Restoring normal ringer...")
-                audioController.restoreNormalRinger()
-                updateNotification("At Home: Normal Ringer Restored")
+                updateNotification("Inside College: Phone Muted")
             }
         } else {
-            // User exited campus boundary and is in transit
-            if (currentState == SilencerState.INSIDE_CAMPUS) {
-                Log.i(TAG, "Exited College Campus! Restoring normal ringer...")
+            if (audioController.isCampusMuted) {
                 audioController.restoreNormalRinger()
-                currentState = SilencerState.IN_TRANSIT
-                updateNotification("Left College: Normal Ringer Restored")
-            } else if (currentState != SilencerState.AT_HOME) {
-                currentState = SilencerState.IN_TRANSIT
-                updateNotification("In Transit: Distance to College: ${distanceToCampus.toInt()}m")
+                currentState = SilencerState.AT_HOME
+                updateNotification("Outside College: Normal Ringer Restored")
             }
         }
-
-        broadcastState(currentState, distanceToCampus)
+        broadcastState(currentState, distToCampus)
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        WifiStateReceiver.unregisterDynamicNetworkCallback(this)
+        try {
+            locationManager?.removeUpdates(this)
+        } catch (_: Exception) {}
+        Log.i(TAG, "CampusGeofenceService stopped.")
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
 
     private fun broadcastState(state: SilencerState, distance: Double) {
         val intent = Intent(ACTION_STATUS_UPDATED).apply {
-            putExtra(EXTRA_STATUS, state.name)
+            putExtra(EXTRA_STATUS, state.displayName)
             putExtra(EXTRA_DISTANCE, distance)
             setPackage(packageName)
         }
         sendBroadcast(intent)
     }
 
-    private fun buildNotification(statusText: String): Notification {
-        val openAppIntent = Intent(this, MainActivity::class.java)
+    private fun buildNotification(contentText: String): Notification {
+        val openIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, openAppIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            this, 0, openIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Smart Campus Silencer")
-            .setContentText(statusText)
+            .setContentText(contentText)
             .setSmallIcon(android.R.drawable.ic_lock_silent_mode)
-            .setOngoing(true)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
             .build()
     }
 
-    private fun updateNotification(text: String) {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(NOTIFICATION_ID, buildNotification(text))
+    private fun updateNotification(contentText: String) {
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+        nm?.notify(NOTIFICATION_ID, buildNotification(contentText))
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Smart Campus Silencer Service",
+                "Campus Silencer Protection Channel",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Monitors campus location to automatically mute/unmute phone"
+                description = "Shows live status of campus silent shield protection"
             }
-            val manager = getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            nm?.createNotificationChannel(channel)
         }
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
-
-    override fun onDestroy() {
-        super.onDestroy()
-        locationManager?.removeUpdates(this)
-        Log.i(TAG, "CampusGeofenceService stopped.")
-    }
-
-    // Unused location listener callbacks
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
     override fun onProviderEnabled(provider: String) {}
     override fun onProviderDisabled(provider: String) {}
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
 }

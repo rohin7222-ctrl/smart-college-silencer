@@ -1,903 +1,1252 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_space"
-    android:fillViewport="true">
+    android:orientation="vertical">
 
+    <!-- Top Static Header: Identity & Status -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="12dp">
 
-        <!-- Top Header: Logo + App Identity + Live Pulse -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/img_app_logo"
-                android:layout_width="54dp"
-                android:layout_height="54dp"
-                android:background="@drawable/bg_glass_card"
-                android:contentDescription="Campus Silencer Logo"
-                android:padding="4dp"
-                android:src="@drawable/app_logo" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.04"
-                    android:text="CAMPUS SILENCER"
-                    android:textColor="@color/amber_400"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Triple-Shield Audio Guardian"
-                    android:textColor="@color/text_slate_400"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tv_badge_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_status_badge"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="6dp"
-                android:text="● SHIELD ON"
-                android:textColor="@color/emerald_500"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Battery Saver Mode & Adaptive Theme Banner -->
-        <LinearLayout
-            android:id="@+id/layout_power_save_banner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+        <ImageView
+            android:id="@+id/img_app_logo"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:background="@drawable/bg_glass_card"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp">
+            android:contentDescription="Campus Silencer Logo"
+            android:padding="3dp"
+            android:src="@drawable/app_logo" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_power_save_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⚡"
-                android:textSize="20sp" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_power_save_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Battery Saver: Active • Dark Mode"
-                    android:textColor="@color/text_white"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_power_save_sub"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Auto-switching based on Android Power Saving Mode"
-                    android:textColor="@color/text_slate_400"
-                    android:textSize="10sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tv_theme_mode_badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_status_badge"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp"
-                android:text="DARK 🌙"
+                android:letterSpacing="0.04"
+                android:text="CAMPUS SILENCER"
                 android:textColor="@color/amber_400"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Theme Mode Switcher (Auto / Dark / Light) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="38dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_glass_card"
-            android:orientation="horizontal"
-            android:padding="3dp">
-
-            <Button
-                android:id="@+id/btn_theme_auto"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/bg_tab_active"
-                android:stateListAnimator="@null"
-                android:text="⚡ Auto Power Sync"
-                android:textColor="@android:color/black"
-                android:textSize="11sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btn_theme_dark"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/bg_tab_inactive"
-                android:stateListAnimator="@null"
-                android:text="🌙 AMOLED Dark"
+            <TextView
+                android:id="@+id/tv_header_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tuesday, 20 Oct 2026"
                 android:textColor="@color/text_slate_400"
-                android:textSize="11sp" />
-
-            <Button
-                android:id="@+id/btn_theme_light"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/bg_tab_inactive"
-                android:stateListAnimator="@null"
-                android:text="☀️ Luxury Light"
-                android:textColor="@color/text_slate_400"
-                android:textSize="11sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Hero Status Card (Centerpiece) -->
-        <FrameLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tv_badge_status"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp">
+            android:background="@drawable/bg_status_badge"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:text="● ON"
+            android:textColor="@color/emerald_500"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
-            <!-- Radial Background Glow -->
-            <View
-                android:layout_width="260dp"
-                android:layout_height="260dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_hero_glow" />
+    <!-- Main ViewPager/Container for Pages -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- ================= PAGE 1: DASHBOARD ================= -->
+        <ScrollView
+            android:id="@+id/page_dashboard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:visibility="visible">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_hero_card"
-                android:gravity="center_horizontal"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:paddingHorizontal="20dp"
+                android:paddingBottom="24dp">
 
-                <!-- Glowing Hero Icon Ring -->
-                <ImageView
-                    android:id="@+id/img_mode_icon"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
-                    android:background="@drawable/bg_glass_card"
-                    android:contentDescription="Ringer Status Icon"
-                    android:padding="16dp"
-                    android:src="@android:drawable/ic_lock_silent_mode"
-                    android:tint="@color/amber_400" />
-
-                <TextView
-                    android:id="@+id/tv_current_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:letterSpacing="0.02"
-                    android:text="Status: Active Protection"
-                    android:textAlignment="center"
-                    android:textColor="@color/text_white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_ringer_mode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Current Mode: Normal (Ringer 80%)"
-                    android:textColor="@color/amber_300"
-                    android:textSize="14sp" />
-
-                <!-- Volume Level Meter Bar -->
+                <!-- Shield Protection Start / Stop Master Switch Card -->
                 <LinearLayout
+                    android:id="@+id/card_protection_toggle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_hero_card"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_protection_title"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="🟢 Protection Shield Active"
+                            android:textColor="@color/text_white"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_protection_indicator"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_status_badge"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="3dp"
+                            android:text="ARMED"
+                            android:textColor="@color/emerald_500"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <TextView
+                        android:id="@+id/tv_protection_sub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Ringtone Volume"
-                        android:textColor="@color/text_slate_500"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1" />
-
-                    <TextView
-                        android:id="@+id/tv_volume_percentage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="80%"
-                        android:textColor="@color/emerald_500"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <ProgressBar
-                    android:id="@+id/progress_volume"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="6dp"
-                    android:layout_marginTop="6dp"
-                    android:max="100"
-                    android:progress="80"
-                    android:progressTint="@color/amber_500" />
-
-                <!-- Divider -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginVertical="16dp"
-                    android:background="@color/border_subtle" />
-
-                <!-- Status Sub-Details -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tv_engine_label"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Option 3: Auto Holiday &amp; Hours"
+                        android:layout_marginTop="4dp"
+                        android:text="Auto-muting on your selected college days &amp; hours is active."
                         android:textColor="@color/text_slate_400"
                         android:textSize="12sp" />
 
+                    <Button
+                        android:id="@+id/btn_toggle_protection"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_stop_glow_button"
+                        android:stateListAnimator="@null"
+                        android:text="🛑 STOP PROTECTION SHIELD"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Saturday Attendance Check Card (Visible only on Saturdays) -->
+                <LinearLayout
+                    android:id="@+id/card_saturday_check"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_glass_card"
+                    android:orientation="vertical"
+                    android:padding="14dp"
+                    android:visibility="gone">
+
                     <TextView
-                        android:id="@+id/tv_holiday_status_badge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Working Day"
+                        android:text="🔔 Saturday Attendance Check"
+                        android:textColor="@color/amber_400"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="Do you have college classes scheduled today?"
+                        android:textColor="@color/text_slate_400"
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btn_sat_have_college"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_amber_glow_button"
+                            android:text="Yes, Have College"
+                            android:textColor="#000000"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <Button
+                            android:id="@+id/btn_sat_no_leave"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_outline_button"
+                            android:text="No, Weekend Leave"
+                            android:textColor="@color/emerald_500"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Today's Date Significance & Holiday Card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_surface_2"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:id="@+id/tv_today_status_badge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🌴 Vijaya Dasami (Official Tamil Nadu Gov Holiday)"
+                        android:textColor="@color/amber_400"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_today_detail_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="Zero-Mute Active: Your phone will NOT mute on holidays or off-days."
+                        android:textColor="@color/emerald_500"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Current Phone Ringer & Exact Volume Hero Card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_glass_card"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/img_mode_icon"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_surface_2"
+                            android:padding="10dp"
+                            android:src="@android:drawable/ic_lock_silent_mode"
+                            android:tint="@color/amber_400" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tv_current_status"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Status: Active Protection"
+                                android:textColor="@color/text_white"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tv_ringer_mode"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Mode: Normal (Ringing)"
+                                android:textColor="@color/amber_400"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- User Saved Previous Volume Indicator -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_saved_volume_label"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="System Ringer Volume:"
+                            android:textColor="@color/text_slate_400"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tv_volume_percentage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="User Saved: 75%"
+                            android:textColor="@color/emerald_500"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <ProgressBar
+                        android:id="@+id/progress_volume"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="6dp"
+                        android:layout_marginTop="6dp"
+                        android:max="100"
+                        android:progress="75"
+                        android:progressTint="@color/amber_500" />
+                </LinearLayout>
+
+                <!-- Universal "Taking Leave Today" Override Card (Auto-expires at midnight!) -->
+                <LinearLayout
+                    android:id="@+id/layout_leave_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_glass_card"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🏖️ Taking Leave Today"
+                            android:textColor="@color/text_white"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="Pauses mute today. Auto-resets at midnight!"
+                            android:textColor="@color/text_slate_400"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <Switch
+                        android:id="@+id/switch_leave_today"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:theme="@style/Theme.CampusSilencer" />
+                </LinearLayout>
+
+                <!-- Quick Sound Restore & Test Buttons -->
+                <Button
+                    android:id="@+id/btn_emergency_unmute"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_outline_button"
+                    android:text="⏰ Quick 1-Hour Sound Restore (Free Period / Break)"
+                    android:textColor="@color/cyan_400"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btn_test_mute"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_outline_button"
+                        android:text="Test Mute (Vibrate)"
+                        android:textColor="@color/amber_400"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btn_test_unmute"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_outline_button"
+                        android:text="Test Restore Home"
                         android:textColor="@color/emerald_500"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
+
             </LinearLayout>
-        </FrameLayout>
+        </ScrollView>
 
-        <!-- DND Permission Banner (Shown only if not granted) -->
-        <Button
-            android:id="@+id/btn_dnd_permission"
+        <!-- ================= PAGE 2: MODES & TIMETABLE ================= -->
+        <ScrollView
+            android:id="@+id/page_modes"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_amber_glow_button"
-            android:letterSpacing="0.02"
-            android:text="⚠️ Grant Do-Not-Disturb Access"
-            android:textColor="#000000"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:visibility="gone">
 
-        <!-- 3-Way Mode Selection Header -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:letterSpacing="0.06"
-            android:text="CHOOSE AUTOMATION MODE (3 OPTIONS)"
-            android:textColor="@color/text_slate_500"
-            android:textSize="11sp"
-            android:textStyle="bold" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingBottom="24dp">
 
-        <!-- Segmented 3-Way Switcher -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:letterSpacing="0.06"
+                    android:text="SELECT AUTOMATION SHIELD"
+                    android:textColor="@color/text_slate_500"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <!-- Segmented 3-Way Switcher -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_glass_card"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
+
+                    <Button
+                        android:id="@+id/btn_tab_opt_1"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_tab_inactive"
+                        android:stateListAnimator="@null"
+                        android:text="📡 Opt 1: Tower"
+                        android:textColor="@color/text_slate_400"
+                        android:textSize="11sp" />
+
+                    <Button
+                        android:id="@+id/btn_tab_opt_2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_tab_inactive"
+                        android:stateListAnimator="@null"
+                        android:text="🔔 Opt 2: Notify"
+                        android:textColor="@color/text_slate_400"
+                        android:textSize="11sp" />
+
+                    <Button
+                        android:id="@+id/btn_tab_opt_3"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_tab_active"
+                        android:stateListAnimator="@null"
+                        android:text="🗓️ Opt 3: Schedule"
+                        android:textColor="@android:color/black"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- OPTION 3 CONTAINER (Default & Primary) -->
+                <LinearLayout
+                    android:id="@+id/layout_option_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <!-- Weekday Selector Chips (Mon-Sun) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_glass_card"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📅 College Working Days (Mon–Sun)"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="Mutes only on selected days (Default: Mon–Fri). Tap to toggle:"
+                            android:textColor="@color/text_slate_400"
+                            android:textSize="11sp" />
+
+                        <!-- 7 Day Chips Row -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/chip_mon"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginEnd="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_weekday_active"
+                                android:stateListAnimator="@null"
+                                android:text="Mon"
+                                android:textColor="#000000"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <Button
+                                android:id="@+id/chip_tue"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginEnd="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_weekday_active"
+                                android:stateListAnimator="@null"
+                                android:text="Tue"
+                                android:textColor="#000000"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <Button
+                                android:id="@+id/chip_wed"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginEnd="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_weekday_active"
+                                android:stateListAnimator="@null"
+                                android:text="Wed"
+                                android:textColor="#000000"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <Button
+                                android:id="@+id/chip_thu"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginEnd="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_weekday_active"
+                                android:stateListAnimator="@null"
+                                android:text="Thu"
+                                android:textColor="#000000"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <Button
+                                android:id="@+id/chip_fri"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginEnd="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_weekday_active"
+                                android:stateListAnimator="@null"
+                                android:text="Fri"
+                                android:textColor="#000000"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <Button
+                                android:id="@+id/chip_sat"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginEnd="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_weekday_inactive"
+                                android:stateListAnimator="@null"
+                                android:text="Sat"
+                                android:textColor="@color/text_slate_400"
+                                android:textSize="11sp" />
+
+                            <Button
+                                android:id="@+id/chip_sun"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_weekday_inactive"
+                                android:stateListAnimator="@null"
+                                android:text="Sun"
+                                android:textColor="@color/text_slate_400"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- College Hours Settings: Starting Time & Ending Time Pickers -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_glass_card"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⏰ College Hours Timetable (Tap to change)"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <!-- Start Time Picker Button -->
+                            <LinearLayout
+                                android:id="@+id/btn_pick_start_time"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_outline_button"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="START TIME"
+                                    android:textColor="@color/text_slate_400"
+                                    android:textSize="10sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tv_start_time_val"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="08:45 AM ✏️"
+                                    android:textColor="@color/amber_400"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- End Time Picker Button -->
+                            <LinearLayout
+                                android:id="@+id/btn_pick_end_time"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_outline_button"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="END TIME"
+                                    android:textColor="@color/text_slate_400"
+                                    android:textSize="10sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tv_end_time_val"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="04:30 PM ✏️"
+                                    android:textColor="@color/emerald_500"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Location Guard: Mute only when at college (Fix 5) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_glass_card"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="📍 Mute only when at college"
+                                android:textColor="@color/text_white"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Performs 1-shot check. Skips mute if you are sick/at home."
+                                android:textColor="@color/text_slate_400"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <Switch
+                            android:id="@+id/switch_mute_only_at_college"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/Theme.CampusSilencer" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- OPTION 1: CELL TOWER SHIELD -->
+                <LinearLayout
+                    android:id="@+id/layout_option_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_glass_card"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📡 Mobile Cell Tower Shield"
+                        android:textColor="@color/amber_400"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="Zero GPS • Zero Battery Drain • Mobile Network Tower Match"
+                        android:textColor="@color/text_slate_400"
+                        android:textSize="11sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_surface_2"
+                            android:padding="10dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="LIVE TOWER:"
+                                android:textColor="@color/text_slate_500"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:id="@+id/tv_connected_tower"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Cell ID #41528"
+                                android:textColor="@color/text_white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_surface_2"
+                            android:padding="10dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="CAMPUS TOWER:"
+                                android:textColor="@color/text_slate_500"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:id="@+id/tv_college_tower"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Cell ID #41528"
+                                android:textColor="@color/amber_400"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btn_lock_current_tower"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_outline_button"
+                        android:text="🔒 Lock Current Tower as College Campus"
+                        android:textColor="@color/amber_400"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- OPTION 2: MORNING SMART PROMPT -->
+                <LinearLayout
+                    android:id="@+id/layout_option_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_glass_card"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔔 Morning Departure Prompt"
+                        android:textColor="@color/amber_400"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="Sends prompt at 08:00 AM on college days with Yes/Leave buttons."
+                        android:textColor="@color/text_slate_400"
+                        android:textSize="11sp" />
+
+                    <Button
+                        android:id="@+id/btn_test_morning_prompt"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_outline_button"
+                        android:text="🔔 Send Morning Notification Test Now"
+                        android:textColor="@color/amber_400"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- ================= PAGE 3: HOLIDAYS CALENDAR ================= -->
+        <ScrollView
+            android:id="@+id/page_holidays"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingBottom="24dp">
+
+                <!-- Region & Next Holiday Banner -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_hero_card"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_detected_region"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📍 Region: Tamil Nadu, India"
+                        android:textColor="@color/amber_400"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_next_holiday_banner"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="🎉 Next Gov Holiday: Deepavali Festival (2026-11-08)"
+                        android:textColor="@color/emerald_500"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btn_add_custom_holiday"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_amber_glow_button"
+                        android:paddingHorizontal="14dp"
+                        android:stateListAnimator="@null"
+                        android:text="➕ Add Custom College Holiday"
+                        android:textColor="#000000"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:letterSpacing="0.04"
+                    android:text="OFFICIAL STATE &amp; CUSTOM HOLIDAYS"
+                    android:textColor="@color/text_slate_500"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <!-- Dynamic Holiday Items Container -->
+                <LinearLayout
+                    android:id="@+id/layout_holiday_items"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- ================= PAGE 4: SYSTEM & BATTERY ================= -->
+        <ScrollView
+            android:id="@+id/page_system"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingBottom="24dp">
+
+                <!-- Battery Saver Auto-Theme Banner -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_hero_card"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_power_save_icon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⚡"
+                            android:textSize="20sp" />
+
+                        <TextView
+                            android:id="@+id/tv_power_save_title"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:text="Battery Saver: Active • Dark Mode"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_theme_mode_badge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_status_badge"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="3dp"
+                            android:text="DARK 🌙"
+                            android:textColor="@color/amber_400"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_power_save_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Automatically switches to Dark Mode when Power Saving is ON, and Light Mode when OFF."
+                        android:textColor="@color/text_slate_400"
+                        android:textSize="11sp" />
+
+                    <!-- Theme Selector 3 Pills -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_glass_card"
+                        android:orientation="horizontal"
+                        android:padding="3dp">
+
+                        <Button
+                            android:id="@+id/btn_theme_auto"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_tab_active"
+                            android:stateListAnimator="@null"
+                            android:text="⚡ Auto Battery"
+                            android:textColor="@android:color/black"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <Button
+                            android:id="@+id/btn_theme_dark"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_tab_inactive"
+                            android:stateListAnimator="@null"
+                            android:text="🌙 Force Dark"
+                            android:textColor="@color/text_slate_400"
+                            android:textSize="11sp" />
+
+                        <Button
+                            android:id="@+id/btn_theme_light"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_tab_inactive"
+                            android:stateListAnimator="@null"
+                            android:text="☀️ Force Light"
+                            android:textColor="@color/text_slate_400"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Background Reliability & Permissions -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:letterSpacing="0.04"
+                    android:text="SYSTEM PERMISSIONS &amp; RELIABILITY"
+                    android:textColor="@color/text_slate_500"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <!-- DND Permission -->
+                <Button
+                    android:id="@+id/btn_dnd_permission"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_outline_button"
+                    android:text="🔔 Grant Do-Not-Disturb / Mute Permission"
+                    android:textColor="@color/amber_400"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <!-- Exact Alarm Permission (Android 12+) -->
+                <Button
+                    android:id="@+id/btn_exact_alarm_permission"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_outline_button"
+                    android:text="⏰ Grant Exact Alarm Permission (On-Time Mute)"
+                    android:textColor="@color/amber_400"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <!-- Battery Optimization Exemption (Fix 6) -->
+                <Button
+                    android:id="@+id/btn_battery_optimization"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_outline_button"
+                    android:text="⚡ Unrestricted Battery Optimization (Never Sleep)"
+                    android:textColor="@color/emerald_500"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <!-- Background Location Permission (Fix 6) -->
+                <Button
+                    android:id="@+id/btn_bg_location_permission"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_outline_button"
+                    android:text="📍 Background Location Access (Always Allow)"
+                    android:textColor="@color/cyan_400"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+
+    <!-- Bottom Navigation Bar (4 Modern Tabs) -->
+    <LinearLayout
+        android:id="@+id/bottom_nav_bar"
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:background="@drawable/bg_glass_card"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="4dp">
+
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_glass_card"
-            android:orientation="horizontal"
-            android:padding="3dp">
+            android:id="@+id/tab_nav_dashboard"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_tab_active"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
 
-            <Button
-                android:id="@+id/btn_tab_opt_1"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/bg_tab_inactive"
-                android:text="📡 Opt 1: Tower"
-                android:textColor="@color/text_slate_400"
-                android:textSize="11sp"
-                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🛡️"
+                android:textSize="16sp" />
 
-            <Button
-                android:id="@+id/btn_tab_opt_2"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/bg_tab_inactive"
-                android:text="🔔 Opt 2: Notify"
-                android:textColor="@color/text_slate_400"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/btn_tab_opt_3"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1.2"
-                android:background="@drawable/bg_tab_active"
-                android:text="🗓️ Opt 3: Holiday"
+            <TextView
+                android:id="@+id/tv_nav_dashboard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shield"
                 android:textColor="#000000"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- CONTAINER FOR OPTION 3: One-Time Location & Auto-Holiday Engine (Recommended) -->
         <LinearLayout
-            android:id="@+id/layout_option_3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_glass_card"
-            android:orientation="vertical"
-            android:padding="18dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="🗓️ Auto-Holiday &amp; Custom Timetable"
-                    android:textColor="@color/text_white"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_status_badge"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp"
-                    android:text="ZERO TRACKING"
-                    android:textColor="@color/emerald_500"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Takes location 1-time (like Google Weather), syncs all State Government Holidays, and mutes strictly during your college hours."
-                android:textColor="@color/text_slate_400"
-                android:textSize="12sp" />
-
-            <!-- State Region & Holiday Badge -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_surface_2"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <TextView
-                    android:id="@+id/tv_detected_region"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="📍 Region: Tamil Nadu, India (Auto-Synced)"
-                    android:textColor="@color/amber_400"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_holiday_count_info"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="📅 25 Official State Gov Holidays Synced (Zero Mute on Holidays!)"
-                    android:textColor="@color/emerald_500"
-                    android:textSize="11sp" />
-
-                <TextView
-                    android:id="@+id/tv_upcoming_holiday_info"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="🎉 Next Holiday: Deepavali Festival (11-08)"
-                    android:textColor="@color/text_slate_400"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:id="@+id/btn_view_holidays"
-                    android:layout_width="wrap_content"
-                    android:layout_height="34dp"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/bg_outline_button"
-                    android:paddingHorizontal="14dp"
-                    android:stateListAnimator="@null"
-                    android:text="📜 View All 25+ Gov Holidays"
-                    android:textColor="@color/amber_400"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- College Hours Settings: Starting Time & Ending Time Pickers -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="⏰ Custom College Timings (Tap to Change):"
-                android:textColor="@color/text_white"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal">
-
-                <!-- Start Time Picker Button -->
-                <LinearLayout
-                    android:id="@+id/btn_pick_start_time"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_outline_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="College Starts"
-                        android:textColor="@color/text_slate_500"
-                        android:textSize="10sp" />
-
-                    <TextView
-                        android:id="@+id/tv_start_time_val"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="08:45 AM ✏️"
-                        android:textColor="@color/amber_400"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <!-- End Time Picker Button -->
-                <LinearLayout
-                    android:id="@+id/btn_pick_end_time"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_outline_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="College Ends"
-                        android:textColor="@color/text_slate_500"
-                        android:textSize="10sp" />
-
-                    <TextView
-                        android:id="@+id/tv_end_time_val"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="04:30 PM ✏️"
-                        android:textColor="@color/emerald_500"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="During these hours on working days, phone automatically mutes. After ending time or on ANY holiday, phone stays loud and clear!"
-                android:textColor="@color/text_slate_400"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- CONTAINER FOR OPTION 1: Mobile Cell Tower Shield -->
-        <LinearLayout
-            android:id="@+id/layout_option_1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_glass_card"
-            android:orientation="vertical"
-            android:padding="18dp"
-            android:visibility="gone">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="📡 Mobile Cell Tower Shield"
-                    android:textColor="@color/text_white"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_status_badge"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp"
-                    android:text="ZERO GPS"
-                    android:textColor="@color/emerald_500"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Mutes when your SIM connects to the college mobile tower. Works with GPS and Wi-Fi turned completely off!"
-                android:textColor="@color/text_slate_400"
-                android:textSize="12sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="12dp"
-                android:background="@color/border_subtle" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Connected Tower:"
-                        android:textColor="@color/text_slate_500"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/tv_connected_tower"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Cell ID #41528"
-                        android:textColor="@color/emerald_500"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="College Tower:"
-                        android:textColor="@color/text_slate_500"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/tv_college_tower"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Cell ID #41528"
-                        android:textColor="@color/amber_400"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btn_lock_current_tower"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="14dp"
-                android:background="@drawable/bg_outline_button"
-                android:text="📍 Set Current Tower as College Campus"
-                android:textColor="@color/amber_400"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- CONTAINER FOR OPTION 2: Morning Smart Notify Shield -->
-        <LinearLayout
-            android:id="@+id/layout_option_2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_glass_card"
-            android:orientation="vertical"
-            android:padding="18dp"
-            android:visibility="gone">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="🔔 Morning Smart Notify"
-                    android:textColor="@color/text_white"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_status_badge"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp"
-                    android:text="PROMPT BASED"
-                    android:textColor="@color/cyan_400"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="At 08:00 AM every college day, an interactive notification asks: 'Are you heading to college today? [Yes / On Leave]'."
-                android:textColor="@color/text_slate_400"
-                android:textSize="12sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="12dp"
-                android:background="@color/border_subtle" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✅ Tap 'Yes' -> Mutes until 04:30 PM\n🏖️ Tap 'Leave' -> Ringer stays loud all day at home"
-                android:textColor="@color/text_slate_100"
-                android:textSize="13sp" />
-        </LinearLayout>
-
-        <!-- UNIVERSAL CORE: Taking Leave Today Card -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:letterSpacing="0.06"
-            android:text="PERSONAL LEAVE OVERRIDE (CLIENT PROBLEM SOLVER)"
-            android:textColor="@color/text_slate_500"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/layout_leave_card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_glass_card"
-            android:orientation="vertical"
-            android:padding="18dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🏖️ Taking Leave Today"
-                        android:textColor="@color/text_white"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        android:text="Pause all silent automation for today"
-                        android:textColor="@color/amber_300"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/switch_leave_today"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:thumbTint="@color/amber_500"
-                    android:trackTint="@color/border_subtle" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="💡 When toggled ON, the phone will NEVER mute today, even on Mondays. All incoming calls at home will ring loud and clear!"
-                android:textColor="@color/text_slate_400"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- Profile Toggle: Vibrate vs Silent -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_glass_card"
-            android:orientation="vertical"
-            android:padding="18dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📳 College Profile: Vibrate Mode"
-                        android:textColor="@color/text_white"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        android:text="Vibrate on silent (uncheck for total silence)"
-                        android:textColor="@color/text_slate_400"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/switch_vibrate_mode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:thumbTint="@color/amber_500"
-                    android:trackTint="@color/border_subtle" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Action Floating Controls -->
-        <Button
-            android:id="@+id/btn_start_service"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginTop="22dp"
-            android:background="@drawable/bg_amber_glow_button"
-            android:letterSpacing="0.03"
-            android:text="🚀 Start Smart Protection Service"
-            android:textColor="#000000"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btn_test_mute"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_outline_button"
-                android:text="Test College Silent"
-                android:textColor="@color/amber_400"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/btn_test_unmute"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_outline_button"
-                android:text="Test Restore Home"
-                android:textColor="@color/emerald_500"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Emergency 1-Hour Sound Restore Button -->
-        <Button
-            android:id="@+id/btn_emergency_unmute"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_outline_button"
-            android:text="⏰ Quick 1-Hour Sound Restore (Free Period / Break)"
-            android:textColor="@color/cyan_400"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
-            android:layout_marginBottom="14dp"
+            android:id="@+id/tab_nav_modes"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_tab_inactive"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
-            android:text="Smart Campus Silencer • Option 1 (Tower) | Option 2 (Notify) | Option 3 (Holiday &amp; Hours)"
-            android:textColor="@color/text_slate_600"
-            android:textSize="11sp" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚙️"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_nav_modes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Modes"
+                android:textColor="@color/text_slate_400"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/tab_nav_holidays"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_tab_inactive"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📅"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_nav_holidays"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Holidays"
+                android:textColor="@color/text_slate_400"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/tab_nav_system"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_tab_inactive"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚡"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_nav_system"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="System"
+                android:textColor="@color/text_slate_400"
+                android:textSize="11sp" />
+        </LinearLayout>
 
     </LinearLayout>
-</ScrollView>
+
+</LinearLayout>
