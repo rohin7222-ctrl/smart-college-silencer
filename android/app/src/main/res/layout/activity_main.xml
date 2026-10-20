@@ -1116,17 +1116,51 @@
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
-                <!-- Background Location Permission (Fix 6) -->
+                <!-- Notifications Permission (Android 13+) -->
                 <Button
-                    android:id="@+id/btn_bg_location_permission"
+                    android:id="@+id/btn_notification_permission"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="8dp"
                     android:background="@drawable/bg_outline_button"
-                    android:text="📍 Background Location Access (Always Allow)"
+                    android:text="🔔 Grant Notification Permission (Morning Prompts)"
                     android:textColor="@color/cyan_400"
                     android:textSize="12sp"
                     android:textStyle="bold" />
+
+                <!-- 100% Offline & Privacy Assurance Card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_glass_card"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔒 100% Offline &amp; Private"
+                        android:textColor="@color/emerald_500"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="This app works fully offline and collects no data."
+                        android:textColor="@color/text_white"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="இந்த ஆப் முற்றிலும் ஆஃப்லைனில் செயல்படுகிறது மற்றும் எந்த ஒரு தகவலையும் சேகரிப்பதில்லை."
+                        android:textColor="@color/text_slate_400"
+                        android:textSize="11sp" />
+                </LinearLayout>
 
             </LinearLayout>
         </ScrollView>

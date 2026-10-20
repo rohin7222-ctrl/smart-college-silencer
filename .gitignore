@@ -14,8 +14,17 @@ android/app/.cxx/
 .cxx/
 local.properties
 
+# Keystores & Secrets (NEVER COMMIT)
+*.keystore
+*.jks
+*.p12
+*.key
+release.jks
+release.keystore
+
 # IDE & OS files
 .idea/
+.vscode/
 *.iml
 .DS_Store
 Thumbs.db
@@ -23,3 +32,4 @@ __pycache__/
 *.py[cod]
 *$py.class
 check_*.py
+monitor_*.py

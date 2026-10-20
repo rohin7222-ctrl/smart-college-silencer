@@ -1,39 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.campussilencer.app">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions required for smart location & audio automation -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-
+    <!-- Essential Permissions: Audio Muting & Notification Policy -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
 
-    <!-- Exact Alarm permissions for Option 3 & Option 2 scheduled triggers -->
+    <!-- Exact Alarms for College Start / End Time Muting -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
+    <!-- Reboot Recovery & Notification Alerts -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!-- Optional Location Guard (for 'Mute Only at College' & Cell Tower Verification) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:name=".CampusSilencerApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CampusSilencer">
 
+        <!-- Launcher Activity (Exported: Only launcher is exported) -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -43,13 +38,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Foreground Service for Geofence Tracking -->
-        <service
-            android:name=".service.CampusGeofenceService"
-            android:exported="false"
-            android:foregroundServiceType="location" />
-
-        <!-- Java Receiver: Boot Auto-Restart & Exact Alarm Reschedule -->
+        <!-- Java Receiver: Boot Auto-Restart & Exact Alarm Reschedule (Exported) -->
         <receiver
             android:name=".receiver.BootCompletedReceiver"
             android:exported="true">
@@ -59,7 +48,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Kotlin Receiver: Exact Alarm Mute / Unmute & Morning Prompts -->
+        <!-- Kotlin Receiver: Exact Alarm Mute / Unmute & Morning Prompts (Not Exported) -->
         <receiver
             android:name=".service.CampusAlarmReceiver"
             android:exported="false">
@@ -69,15 +58,6 @@
                 <action android:name="com.campussilencer.app.ACTION_MORNING_PROMPT" />
                 <action android:name="com.campussilencer.app.ACTION_CONFIRM_ATTENDANCE" />
                 <action android:name="com.campussilencer.app.ACTION_MARK_LEAVE" />
-            </intent-filter>
-        </receiver>
-
-        <!-- Java Receiver: Wi-Fi Detection -->
-        <receiver
-            android:name=".audio.WifiStateReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.net.wifi.STATE_CHANGE" />
             </intent-filter>
         </receiver>
 

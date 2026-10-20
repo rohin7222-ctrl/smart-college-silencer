@@ -37,7 +37,6 @@ import com.campussilencer.app.data.ShieldMode
 import com.campussilencer.app.data.ThemeModePreference
 import com.campussilencer.app.service.CampusAlarmReceiver
 import com.campussilencer.app.service.CampusAlarmScheduler
-import com.campussilencer.app.service.CampusGeofenceService
 import com.campussilencer.app.service.CellTowerHelper
 import com.campussilencer.app.ui.PowerSaveThemeHelper
 import java.text.SimpleDateFormat
@@ -143,17 +142,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnDndPermission: Button
     private lateinit var btnExactAlarmPermission: Button
     private lateinit var btnBatteryOptimization: Button
-    private lateinit var btnBgLocationPermission: Button
-
-    private val statusReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == CampusGeofenceService.ACTION_STATUS_UPDATED) {
-                val status = intent.getStringExtra(CampusGeofenceService.EXTRA_STATUS) ?: "Unknown"
-                val distance = intent.getDoubleExtra(CampusGeofenceService.EXTRA_DISTANCE, 0.0)
-                updateUiState(status, distance)
-            }
-        }
-    }
+    private lateinit var btnNotificationPermission: Button
 
     private val powerSaveReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -165,8 +154,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         settingsRepo = AppSettingsRepository(this)
-        // Force the theme onto this Activity before inflating views
-        PowerSaveThemeHelper.applyThemeToActivity(this, settingsRepo.getConfig().themePreference)
+        val initialConfig = settingsRepo.getConfig()
+        PowerSaveThemeHelper.applyThemeToActivity(this, initialConfig.themePreference)
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -174,19 +163,37 @@ class MainActivity : AppCompatActivity() {
         audioController = AudioModeController(this)
 
         initViews()
-        setupNavigation()
+        setupBottomNav()
         setupListeners()
-        checkForegroundPermissions()
-        refreshUi()
+        populateHolidaysList()
 
-        // Schedule exact alarms
+        checkForegroundPermissions()
+
         val config = settingsRepo.getConfig()
-        CampusAlarmScheduler.scheduleAllAlarms(this, config)
+        if (config.isProtectionEnabled) {
+            CampusAlarmScheduler.scheduleAllAlarms(this, config)
+        }
+
+        updateProtectionButtonUi(config.isProtectionEnabled)
+        updateWeekdayChipsUi(config.selectedWeekdays)
+        updateTimeDisplays(config.collegeStartHour, config.collegeStartMinute, config.collegeEndHour, config.collegeEndMinute)
+        switchMuteOnlyAtCollege.isChecked = config.muteOnlyAtCollege
+        switchLeaveToday.isChecked = config.takingLeaveToday
+
+        tvCollegeTower.text = "Cell ID #${config.collegeCellTowerId}"
+        tvConnectedTower.text = "Active Tower: #${CellTowerHelper.getCurrentCellTowerId(this)}"
+
+        switchModeTab(config.selectedMode)
+        evaluateCurrentState()
+        refreshUi()
     }
 
     private fun initViews() {
         tvHeaderDate = findViewById(R.id.tv_header_date)
         tvBadgeStatus = findViewById(R.id.tv_badge_status)
+
+        val headerFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale.getDefault())
+        tvHeaderDate.text = headerFormat.format(Date())
 
         // Pages
         pageDashboard = findViewById(R.id.page_dashboard)
@@ -285,58 +292,43 @@ class MainActivity : AppCompatActivity() {
         btnDndPermission = findViewById(R.id.btn_dnd_permission)
         btnExactAlarmPermission = findViewById(R.id.btn_exact_alarm_permission)
         btnBatteryOptimization = findViewById(R.id.btn_battery_optimization)
-        btnBgLocationPermission = findViewById(R.id.btn_bg_location_permission)
+        btnNotificationPermission = findViewById(R.id.btn_notification_permission)
 
-        // Date Display
-        val fullDateFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale.US)
-        tvHeaderDate.text = fullDateFormat.format(Date())
-
-        val config = settingsRepo.getConfig()
-        updateProtectionButtonUi(config.isProtectionEnabled)
-        updateWeekdayChipsUi(config.selectedWeekdays)
-        updateTimeDisplays(config.collegeStartHour, config.collegeStartMinute, config.collegeEndHour, config.collegeEndMinute)
-        switchMuteOnlyAtCollege.isChecked = config.muteOnlyAtCollege
-        switchLeaveToday.isChecked = config.takingLeaveToday
-
-        val activeTower = CellTowerHelper.getCurrentCellTowerId(this)
-        tvConnectedTower.text = "Cell ID #$activeTower"
-        tvCollegeTower.text = "Cell ID #${config.collegeCellTowerId}"
-
-        // Saturday check visibility
-        val calendar = Calendar.getInstance()
-        if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) {
-            cardSaturdayCheck.visibility = View.VISIBLE
+        // Check if today is Saturday to show Saturday Check Card
+        val cal = Calendar.getInstance()
+        if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) {
+            val config = settingsRepo.getConfig()
+            if (!config.takingLeaveToday && !config.selectedWeekdays.contains(Calendar.SATURDAY)) {
+                cardSaturdayCheck.visibility = View.VISIBLE
+            } else {
+                cardSaturdayCheck.visibility = View.GONE
+            }
         } else {
             cardSaturdayCheck.visibility = View.GONE
         }
-
-        switchModeTab(config.selectedMode)
-        populateHolidaysList()
-        updatePowerSaveBannerUi(PowerSaveThemeHelper.isPowerSaveModeActive(this), config.themePreference)
     }
 
-    private fun setupNavigation() {
-        tabNavDashboard.setOnClickListener { switchPage(0) }
-        tabNavModes.setOnClickListener { switchPage(1) }
-        tabNavHolidays.setOnClickListener { switchPage(2) }
-        tabNavSystem.setOnClickListener { switchPage(3) }
+    private fun setupBottomNav() {
+        tabNavDashboard.setOnClickListener { navigateToPage(0) }
+        tabNavModes.setOnClickListener { navigateToPage(1) }
+        tabNavHolidays.setOnClickListener { navigateToPage(2) }
+        tabNavSystem.setOnClickListener { navigateToPage(3) }
     }
 
-    private fun switchPage(pageIndex: Int) {
-        pageDashboard.visibility = if (pageIndex == 0) View.VISIBLE else View.GONE
-        pageModes.visibility = if (pageIndex == 1) View.VISIBLE else View.GONE
-        pageHolidays.visibility = if (pageIndex == 2) View.VISIBLE else View.GONE
-        pageSystem.visibility = if (pageIndex == 3) View.VISIBLE else View.GONE
+    private fun navigateToPage(index: Int) {
+        pageDashboard.visibility = if (index == 0) View.VISIBLE else View.GONE
+        pageModes.visibility = if (index == 1) View.VISIBLE else View.GONE
+        pageHolidays.visibility = if (index == 2) View.VISIBLE else View.GONE
+        pageSystem.visibility = if (index == 3) View.VISIBLE else View.GONE
 
-        // Update tab styling
-        setTabStyle(tabNavDashboard, tvNavDashboard, pageIndex == 0)
-        setTabStyle(tabNavModes, tvNavModes, pageIndex == 1)
-        setTabStyle(tabNavHolidays, tvNavHolidays, pageIndex == 2)
-        setTabStyle(tabNavSystem, tvNavSystem, pageIndex == 3)
+        updateTabAppearance(tabNavDashboard, tvNavDashboard, index == 0)
+        updateTabAppearance(tabNavModes, tvNavModes, index == 1)
+        updateTabAppearance(tabNavHolidays, tvNavHolidays, index == 2)
+        updateTabAppearance(tabNavSystem, tvNavSystem, index == 3)
     }
 
-    private fun setTabStyle(tab: LinearLayout, label: TextView, isActive: Boolean) {
-        if (isActive) {
+    private fun updateTabAppearance(tab: LinearLayout, label: TextView, isSelected: Boolean) {
+        if (isSelected) {
             tab.setBackgroundResource(R.drawable.bg_tab_active)
             label.setTextColor(ContextCompat.getColor(this, android.R.color.black))
         } else {
@@ -355,13 +347,9 @@ class MainActivity : AppCompatActivity() {
 
             if (newEnabled) {
                 CampusAlarmScheduler.scheduleAllAlarms(this, settingsRepo.getConfig())
-                if (config.selectedMode == ShieldMode.CELL_TOWER || config.muteOnlyAtCollege) {
-                    startProtectionService()
-                }
-                Toast.makeText(this, "🚀 Protection Shield Started! Alarms & monitoring active.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "🚀 Protection Shield Started! Alarms active.", Toast.LENGTH_SHORT).show()
             } else {
                 CampusAlarmScheduler.cancelAllAlarms(this)
-                stopService(Intent(this, CampusGeofenceService::class.java))
                 audioController.restoreNormalRinger()
                 Toast.makeText(this, "🛑 Protection Stopped! Alarms cancelled and ringer restored.", Toast.LENGTH_SHORT).show()
             }
@@ -400,53 +388,42 @@ class MainActivity : AppCompatActivity() {
             evaluateCurrentState()
         }
 
-        // Emergency 1-Hour Sound Restore
+        // Emergency Unmute Button
         btnEmergencyUnmute.setOnClickListener {
             audioController.restoreNormalRinger()
-            Toast.makeText(this, "⏰ Ringer restored for 1 Hour! You will not miss any calls.", Toast.LENGTH_LONG).show()
             refreshUi()
+            Toast.makeText(this, "🔊 Emergency Unmute Executed! Full volume restored.", Toast.LENGTH_LONG).show()
         }
 
-        // Test Buttons
+        // Quick Test Buttons
         btnTestMute.setOnClickListener {
-            if (audioController.muteForCampus(settingsRepo.getConfig().vibrateOnly)) {
-                Toast.makeText(this, "Test Success: Phone Muted (Vibrate)! Calls will buzz.", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Error: Grant DND permission first!", Toast.LENGTH_LONG).show()
-            }
+            val config = settingsRepo.getConfig()
+            audioController.muteForCampus(config.vibrateOnly)
             refreshUi()
+            Toast.makeText(this, "🔇 Tested Mute: Volume set to 0", Toast.LENGTH_SHORT).show()
         }
 
         btnTestUnmute.setOnClickListener {
-            if (audioController.restoreNormalRinger()) {
-                val savedVol = audioController.savedVolume
-                Toast.makeText(this, "Test Success: Restored previous ringer mode & volume ($savedVol)!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Error: Grant DND permission first!", Toast.LENGTH_LONG).show()
-            }
+            audioController.restoreNormalRinger()
             refreshUi()
+            Toast.makeText(this, "🔊 Tested Unmute: Volume restored", Toast.LENGTH_SHORT).show()
         }
 
-        // Mode Switching
+        // Modes Tab Switching
         btnTabOpt1.setOnClickListener {
             settingsRepo.setSelectedMode(ShieldMode.CELL_TOWER)
             switchModeTab(ShieldMode.CELL_TOWER)
-            Toast.makeText(this, "Option 1 Selected: Cell Tower Shield (Zero GPS)", Toast.LENGTH_SHORT).show()
         }
-
         btnTabOpt2.setOnClickListener {
             settingsRepo.setSelectedMode(ShieldMode.NOTIFY_BASED)
             switchModeTab(ShieldMode.NOTIFY_BASED)
-            Toast.makeText(this, "Option 2 Selected: Morning Smart Notify", Toast.LENGTH_SHORT).show()
         }
-
         btnTabOpt3.setOnClickListener {
             settingsRepo.setSelectedMode(ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE)
             switchModeTab(ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE)
-            Toast.makeText(this, "Option 3 Selected: Auto Holiday & Weekday Timetable", Toast.LENGTH_SHORT).show()
         }
 
-        // Weekday Chips Click Listeners (Fix 1)
+        // 7 Weekday Toggle Chips
         weekdayChips.forEach { (dayInt, chipBtn) ->
             chipBtn.setOnClickListener {
                 val currentSet = settingsRepo.getConfig().selectedWeekdays.toMutableSet()
@@ -490,10 +467,25 @@ class MainActivity : AppCompatActivity() {
             }, config.collegeEndHour, config.collegeEndMinute, false).show()
         }
 
-        // Mute only when at college location switch (Fix 5)
+        // Mute only when at college location switch
         switchMuteOnlyAtCollege.setOnCheckedChangeListener { _, isChecked ->
             settingsRepo.setMuteOnlyAtCollege(isChecked)
-            Toast.makeText(this, if (isChecked) "Location Guard: Will check campus GPS before muting" else "Mutes by schedule directly", Toast.LENGTH_SHORT).show()
+            if (isChecked && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                showPermissionTransparencyDialog(
+                    titleEn = "📍 Location Guard Permission",
+                    titleTa = "வளாக இருப்பிட அனுமதி",
+                    descEn = "Required to verify you are physically inside the campus radius before muting on schedule.",
+                    descTa = "அலார நேரத்தில் நீங்கள் கல்லூரி வளாகத்திற்குள் இருப்பதை உறுதி செய்து சைலன்ட் செய்ய இது பயன்படுகிறது."
+                ) {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                        101
+                    )
+                }
+            } else {
+                Toast.makeText(this, if (isChecked) "Location Guard: Will check campus GPS before muting" else "Mutes by schedule directly", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // Option 1 Lock Current Tower
@@ -505,7 +497,7 @@ class MainActivity : AppCompatActivity() {
             evaluateCurrentState()
         }
 
-        // Option 2 Test Morning Prompt (Fix 9)
+        // Option 2 Test Morning Prompt
         btnTestMorningPrompt.setOnClickListener {
             val receiver = CampusAlarmReceiver()
             val intent = Intent(this, CampusAlarmReceiver::class.java).apply {
@@ -515,7 +507,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Morning Prompt Notification Triggered! Check your notification shade.", Toast.LENGTH_SHORT).show()
         }
 
-        // Add Custom Holiday Button (Fix 10)
+        // Add Custom Holiday Button
         btnAddCustomHoliday.setOnClickListener {
             showAddHolidayDialog()
         }
@@ -544,16 +536,30 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "☀️ Luxury Light Mode Activated", Toast.LENGTH_SHORT).show()
         }
 
-        // Permission Buttons
+        // Transparency-backed Permission Buttons
         btnDndPermission.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
+                showPermissionTransparencyDialog(
+                    titleEn = "🔕 Do Not Disturb (DND) Access",
+                    titleTa = "அமைதி முறை அனுமதி",
+                    descEn = "Allows Smart Campus Silencer to automatically silence ringtones and media when college starts, and safely restore sound when college ends.",
+                    descTa = "கல்லூரி நேரத்தில் உங்கள் போனை தானாக சைலன்ட் செய்யவும், வகுப்பு முடிந்ததும் மீண்டும் சத்தமாக ஒலிக்கவும் இந்த அனுமதி தேவைப்படுகிறது."
+                ) {
+                    startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
+                }
             }
         }
 
         btnExactAlarmPermission.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
+                showPermissionTransparencyDialog(
+                    titleEn = "⏰ Exact Alarm Schedule Access",
+                    titleTa = "துல்லிய அலார அனுமதி",
+                    descEn = "Allows the app to trigger mute and unmute precisely at your college start and end times with zero battery drain.",
+                    descTa = "வகுப்பு தொடங்கும் மற்றும் முடியும் சரியான நேரத்தில் அலாரத்தை இயக்கி சைலன்ட் / அன்சைலன்ட் செய்ய இது தேவைப்படுகிறது."
+                ) {
+                    startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
+                }
             } else {
                 Toast.makeText(this, "Exact Alarms are supported natively on this Android version.", Toast.LENGTH_SHORT).show()
             }
@@ -561,16 +567,66 @@ class MainActivity : AppCompatActivity() {
 
         btnBatteryOptimization.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                    data = Uri.parse("package:$packageName")
+                showPermissionTransparencyDialog(
+                    titleEn = "⚡ Battery Saver Exemption",
+                    titleTa = "பேட்டரி சேமிப்பு விலக்கு",
+                    descEn = "Prevents Android from putting scheduled campus alarms to sleep while your phone is locked.",
+                    descTa = "தொலைபேசி லாக் செய்யப்பட்டிருந்தாலும் கல்லூரி அலாரங்கள் சரியான நேரத்தில் செயல்பட இது உதவுகிறது."
+                ) {
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                    startActivity(intent)
                 }
-                startActivity(intent)
             }
         }
 
-        btnBgLocationPermission.setOnClickListener {
-            requestBackgroundLocationPermission()
+        btnNotificationPermission.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                showPermissionTransparencyDialog(
+                    titleEn = "🔔 Notification Alerts Access",
+                    titleTa = "அறிவிப்புகள் அனுமதி",
+                    descEn = "Allows interactive morning prompts asking if you are attending college today, and real-time shield status alerts.",
+                    descTa = "காலை கல்லூரி புறப்பாடு சரிபார்ப்பு மற்றும் ஆப் நிலவர அறிவிப்புகளை திரையில் காட்ட இது பயன்படுகிறது."
+                ) {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                        103
+                    )
+                }
+            } else {
+                Toast.makeText(this, "Notifications enabled natively.", Toast.LENGTH_SHORT).show()
+            }
         }
+    }
+
+    private fun showPermissionTransparencyDialog(
+        titleEn: String,
+        titleTa: String,
+        descEn: String,
+        descTa: String,
+        onGrant: () -> Unit
+    ) {
+        val message = """
+$descEn
+
+$descTa
+
+─────────────────────────────
+🔒 100% Offline & Private:
+This app works fully offline and collects no data.
+இந்த ஆப் முற்றிலும் ஆஃப்லைனில் செயல்படுகிறது மற்றும் எந்த ஒரு தகவலையும் சேகரிப்பதில்லை.
+        """.trimIndent()
+
+        AlertDialog.Builder(this)
+            .setTitle("$titleEn\n$titleTa")
+            .setMessage(message)
+            .setPositiveButton("Continue / தொடரவும்") { _, _ ->
+                onGrant()
+            }
+            .setNegativeButton("Cancel / ரத்து", null)
+            .show()
     }
 
     private fun updateProtectionButtonUi(isEnabled: Boolean) {
@@ -648,21 +704,22 @@ class MainActivity : AppCompatActivity() {
 
             text1.text = name + (if (isCustom) " (Custom)" else "")
             text1.setTextColor(ContextCompat.getColor(this, if (isCustom) R.color.amber_400 else R.color.text_white))
-            text1.textSize = 13f
+            text1.textSize = 14f
 
-            text2.text = dateKey
+            text2.text = "Date: $dateKey"
             text2.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
-            text2.textSize = 11f
+            text2.textSize = 12f
 
             if (isCustom) {
                 itemView.setOnLongClickListener {
                     AlertDialog.Builder(this)
-                        .setTitle("Remove Custom Holiday")
-                        .setMessage("Do you want to delete '$name' ($dateKey)?")
+                        .setTitle("Delete Holiday")
+                        .setMessage("Remove '$name' from holiday schedule?")
                         .setPositiveButton("Delete") { _, _ ->
                             settingsRepo.removeCustomHoliday(dateKey)
                             populateHolidaysList()
                             evaluateCurrentState()
+                            Toast.makeText(this, "Deleted custom holiday $dateKey", Toast.LENGTH_SHORT).show()
                         }
                         .setNegativeButton("Cancel", null)
                         .show()
@@ -840,39 +897,25 @@ class MainActivity : AppCompatActivity() {
         updatePowerSaveBannerUi(isPowerSave, config.themePreference)
     }
 
-    private fun startProtectionService() {
-        val serviceIntent = Intent(this, CampusGeofenceService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ContextCompat.startForegroundService(this, serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
-    }
-
     private fun refreshUi() {
         val hasDnd = audioController.hasDndPermission()
         btnDndPermission.visibility = if (hasDnd) View.GONE else View.VISIBLE
+
+        val canExact = CampusAlarmScheduler.canScheduleExactAlarms(this)
+        btnExactAlarmPermission.visibility = if (canExact) View.GONE else View.VISIBLE
+
+        val hasNotif = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+        btnNotificationPermission.visibility = if (hasNotif) View.GONE else View.VISIBLE
+
         tvRingerMode.text = "Mode: ${audioController.getCurrentRingerModeName()}"
         evaluateCurrentState()
     }
 
-    private fun updateUiState(status: String, distance: Double) {
-        tvCurrentStatus.text = "Status: $status"
-        tvRingerMode.text = "Mode: ${audioController.getCurrentRingerModeName()}"
-
-        if (status.contains("Inside", ignoreCase = true) || audioController.isCampusMuted) {
-            tvCurrentStatus.setTextColor(ContextCompat.getColor(this, R.color.amber_400))
-            imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.amber_400))
-            progressVolume.progress = 0
-            tvVolumePercentage.text = "0% (Muted)"
-        } else {
-            tvCurrentStatus.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
-            imgModeIcon.setColorFilter(ContextCompat.getColor(this, R.color.emerald_500))
-            updateVolumeDisplay()
-        }
-    }
-
-    // Step 1: Request Foreground permissions (Fix 6)
+    // Step 1: Request Foreground permissions with clean transparency
     private fun checkForegroundPermissions() {
         val perms = mutableListOf<String>()
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -880,9 +923,6 @@ class MainActivity : AppCompatActivity() {
         }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             perms.add(Manifest.permission.ACCESS_COARSE_LOCATION)
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            perms.add(Manifest.permission.READ_PHONE_STATE)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -895,48 +935,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Step 2: Request Background Location separately on Android 10+ (Fix 6)
-    private fun requestBackgroundLocationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                AlertDialog.Builder(this)
-                    .setTitle("Background Location Required")
-                    .setMessage("To auto-mute your phone when arriving at college campus while your phone is locked or in your pocket, please select 'Allow all the time' on the next screen.")
-                    .setPositiveButton("Continue") { _, _ ->
-                        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 102)
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .show()
-            } else {
-                Toast.makeText(this, "Background location is already granted!", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(this, "Background location is granted via location permission.", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 101) {
-            // Once foreground is granted, check if background location is needed
-            val fineGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-            if (fineGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    btnBgLocationPermission.visibility = View.VISIBLE
-                }
-            }
-        }
+        refreshUi()
     }
 
     override fun onResume() {
         super.onResume()
-        val filter = IntentFilter(CampusGeofenceService.ACTION_STATUS_UPDATED)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(statusReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(statusReceiver, filter)
-        }
-
         val psFilter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
         registerReceiver(powerSaveReceiver, psFilter)
 
@@ -946,9 +951,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        try {
-            unregisterReceiver(statusReceiver)
-        } catch (_: IllegalArgumentException) {}
         try {
             unregisterReceiver(powerSaveReceiver)
         } catch (_: IllegalArgumentException) {}
