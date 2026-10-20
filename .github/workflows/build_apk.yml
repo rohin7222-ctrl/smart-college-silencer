@@ -24,31 +24,30 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+          cache: 'gradle'
 
       - name: Grant Execute Permission to Gradle Wrapper
         run: |
           chmod +x ./android/gradlew
 
-      - name: Build Debug APK
+      - name: Build Android Debug APK
+        working-directory: ./android
         run: |
-          cd android
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Upload APK Artifact
+      - name: Verify APK Generated
+        run: |
+          ls -la ./android/app/build/outputs/apk/debug/
+
+      - name: Upload APK as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SmartCampusSilencer-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: ./android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
 
-      - name: Create or Update GitHub Release
+      - name: Publish Direct APK to GitHub Releases
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
@@ -57,21 +56,27 @@ jobs:
           draft: false
           prerelease: false
           body: |
-            ## 📱 Smart Campus Silencer APK Download
+            ## 📱 Smart Campus Silencer - Mobile Direct Download
             
-            ### 🚀 Installation Guide (மொபைலில் இன்ஸ்டால் செய்ய):
-            1. கீழே உள்ள **`app-debug.apk`** லிங்கை மொபைல் பிரவுசரில் டச் செய்து டவுன்லோட் செய்யவும்.
-            2. டவுன்லோட் ஆனதும் APK ஃபைலை ஓபன் செய்யவும்.
-            3. "Install from Unknown Sources" கேட்கப்பட்டால் **Allow** கொடுக்கவும்.
-            4. ஆப் ஓபன் ஆனதும் **"Grant DND / Silent Permission"** கொடுத்துவிட்டு **"Start Background Geofencing"** கொடுக்கவும்.
+            ### 📥 Download Link:
+            Click **`app-debug.apk`** below to download directly onto your Android phone!
             
-            ### 🌟 Features Included:
-            - **Auto Mute at College Campus (GPS Geofence)**
-            - **Auto Unmute / Normal Ringer when arriving Home**
-            - **"Taking Leave Today" Toggle (Never mutes on holidays/sick leave)**
-            - **College Wi-Fi Auto-Trigger**
-            - **Ultra-low battery consumption (C++ Native Geo Engine)**
+            ---
+            ### 🚀 How to Install on Android Phone:
+            1. Download the **`app-debug.apk`** file below.
+            2. Open the downloaded file from your mobile notifications or Downloads folder.
+            3. If prompted, enable **"Allow from this source"** / **"Install unknown apps"**.
+            4. Tap **Install** and open **Smart Campus Silencer**!
+            5. Grant **DND (Do Not Disturb) Access** and click **"Start Background Geofencing"**.
+            
+            ---
+            ### ✨ Core Features:
+            - 🎯 **GPS Geofencing**: Automatically switches phone to Silent/Vibrate upon entering college campus.
+            - 🏡 **Auto Restore at Home**: Instantly restores normal ringing volume when you get back home.
+            - 🏖️ **Taking Leave Today**: One-tap pause so your phone NEVER mutes on sick leaves or holidays.
+            - 📶 **College Wi-Fi Trigger**: Instant zero-battery-drain muting.
+            - ⚡ **C++ Native Geo Engine**: Ultra-low battery consumption.
           files: |
-            android/app/build/outputs/apk/debug/app-debug.apk
+            ./android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
