@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ultra-Premium Obsidian & Glowing Amber Theme (Dark Mode) -->
+    <color name="bg_space">#07080B</color>
+    <color name="bg_surface_1">#10121A</color>
+    <color name="bg_surface_2">#181B26</color>
+    <color name="bg_surface_3">#202433</color>
+    
+    <color name="border_subtle">#222638</color>
+    <color name="border_amber_glow">#F59E0B</color>
+    <color name="border_emerald_glow">#10B981</color>
+
+    <!-- Neon Amber Gold Gradients & Accents -->
+    <color name="amber_500">#F59E0B</color>
+    <color name="amber_400">#FBBF24</color>
+    <color name="amber_300">#FCD34D</color>
+    <color name="amber_gradient_start">#FFB326</color>
+    <color name="amber_gradient_end">#D97706</color>
+    <color name="amber_glow_pill">#26F59E0B</color>
+
+    <!-- Status Accents -->
+    <color name="emerald_500">#10B981</color>
+    <color name="emerald_glow_pill">#2010B981</color>
+    <color name="rose_500">#F43F5E</color>
+    <color name="rose_glow_pill">#20F43F5E</color>
+    <color name="cyan_400">#38BDF8</color>
+
+    <!-- High-Contrast Clean Typography for Dark Mode -->
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_slate_100">#F1F5F9</color>
+    <color name="text_slate_400">#94A3B8</color>
+    <color name="text_slate_500">#64748B</color>
+    <color name="text_slate_600">#475569</color>
+
+    <!-- Hero Card & Drawables Tokens (Dark) -->
+    <color name="hero_bg_start">#161926</color>
+    <color name="hero_bg_end">#0E1018</color>
+    <color name="hero_stroke">#33F59E0B</color>
+    <color name="hero_glow_start">#40F59E0B</color>
+    <color name="hero_glow_center">#15F59E0B</color>
+    <color name="status_pill_bg">#181B26</color>
+    <color name="badge_text">#FFFFFF</color>
+
+    <!-- Legacy / Compatibility Tokens -->
+    <color name="card_surface">#10121A</color>
+    <color name="card_stroke">#222638</color>
+    <color name="card_stroke_glow">#F59E0B</color>
+    <color name="amber_primary">#F59E0B</color>
+    <color name="amber_light">#FBBF24</color>
+    <color name="amber_dark">#D97706</color>
+    <color name="amber_glow">#33F59E0B</color>
+    <color name="amber_glow_strong">#66F59E0B</color>
+    <color name="amber_text">#FEF3C7</color>
+    <color name="status_green">#10B981</color>
+    <color name="status_red">#EF4444</color>
+    <color name="status_blue">#38BDF8</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_tertiary">#64748B</color>
+</resources>

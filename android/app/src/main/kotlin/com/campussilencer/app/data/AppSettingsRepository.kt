@@ -17,9 +17,18 @@ class AppSettingsRepository(context: Context) {
             ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE
         }
 
+        val themeStr = prefs.getString("theme_preference", ThemeModePreference.AUTO_BATTERY_SAVER.name)
+            ?: ThemeModePreference.AUTO_BATTERY_SAVER.name
+        val theme = try {
+            ThemeModePreference.valueOf(themeStr)
+        } catch (e: Exception) {
+            ThemeModePreference.AUTO_BATTERY_SAVER
+        }
+
         return CampusConfig(
             collegeName = prefs.getString("college_name", "Anna University / College Campus") ?: "",
             selectedMode = mode,
+            themePreference = theme,
             userRegionState = prefs.getString("user_region_state", "Tamil Nadu, India") ?: "Tamil Nadu, India",
             collegeStartTime = prefs.getString("college_start_time", "08:45") ?: "08:45",
             collegeEndTime = prefs.getString("college_end_time", "16:30") ?: "16:30",
@@ -46,6 +55,7 @@ class AppSettingsRepository(context: Context) {
         prefs.edit().apply {
             putString("college_name", config.collegeName)
             putString("selected_shield_mode", config.selectedMode.name)
+            putString("theme_preference", config.themePreference.name)
             putString("user_region_state", config.userRegionState)
             putString("college_start_time", config.collegeStartTime)
             putString("college_end_time", config.collegeEndTime)
@@ -71,6 +81,10 @@ class AppSettingsRepository(context: Context) {
 
     fun setSelectedMode(mode: ShieldMode) {
         prefs.edit().putString("selected_shield_mode", mode.name).apply()
+    }
+
+    fun setThemePreference(pref: ThemeModePreference) {
+        prefs.edit().putString("theme_preference", pref.name).apply()
     }
 
     fun setCollegeTimes(startHour: Int, startMin: Int, endHour: Int, endMin: Int) {

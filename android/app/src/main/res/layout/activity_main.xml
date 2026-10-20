@@ -65,6 +65,107 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <!-- Battery Saver Mode & Adaptive Theme Banner -->
+        <LinearLayout
+            android:id="@+id/layout_power_save_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_glass_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="10dp">
+
+            <TextView
+                android:id="@+id/tv_power_save_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚡"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_power_save_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Battery Saver: Active • Dark Mode"
+                    android:textColor="@color/text_white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_power_save_sub"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Auto-switching based on Android Power Saving Mode"
+                    android:textColor="@color/text_slate_400"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_theme_mode_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_badge"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="DARK 🌙"
+                android:textColor="@color/amber_400"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Theme Mode Switcher (Auto / Dark / Light) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_glass_card"
+            android:orientation="horizontal"
+            android:padding="3dp">
+
+            <Button
+                android:id="@+id/btn_theme_auto"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tab_active"
+                android:stateListAnimator="@null"
+                android:text="⚡ Auto Power Sync"
+                android:textColor="@android:color/black"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_theme_dark"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tab_inactive"
+                android:stateListAnimator="@null"
+                android:text="🌙 AMOLED Dark"
+                android:textColor="@color/text_slate_400"
+                android:textSize="11sp" />
+
+            <Button
+                android:id="@+id/btn_theme_light"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tab_inactive"
+                android:stateListAnimator="@null"
+                android:text="☀️ Luxury Light"
+                android:textColor="@color/text_slate_400"
+                android:textSize="11sp" />
+        </LinearLayout>
+
         <!-- Hero Status Card (Centerpiece) -->
         <FrameLayout
             android:layout_width="match_parent"
@@ -328,9 +429,31 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="📅 28 Official State Gov Holidays Synced (Zero Mute on Holidays!)"
+                    android:text="📅 25 Official State Gov Holidays Synced (Zero Mute on Holidays!)"
                     android:textColor="@color/emerald_500"
                     android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/tv_upcoming_holiday_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="🎉 Next Holiday: Deepavali Festival (11-08)"
+                    android:textColor="@color/text_slate_400"
+                    android:textSize="11sp" />
+
+                <Button
+                    android:id="@+id/btn_view_holidays"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_outline_button"
+                    android:paddingHorizontal="14dp"
+                    android:stateListAnimator="@null"
+                    android:text="📜 View All 25+ Gov Holidays"
+                    android:textColor="@color/amber_400"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <!-- College Hours Settings: Starting Time & Ending Time Pickers -->
@@ -753,6 +876,18 @@
                 android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
+
+        <!-- Emergency 1-Hour Sound Restore Button -->
+        <Button
+            android:id="@+id/btn_emergency_unmute"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_outline_button"
+            android:text="⏰ Quick 1-Hour Sound Restore (Free Period / Break)"
+            android:textColor="@color/cyan_400"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"

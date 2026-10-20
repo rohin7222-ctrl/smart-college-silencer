@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
 import android.widget.Button
@@ -18,6 +19,7 @@ import android.widget.ProgressBar
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -25,8 +27,10 @@ import com.campussilencer.app.audio.AudioModeController
 import com.campussilencer.app.data.AppSettingsRepository
 import com.campussilencer.app.data.HolidayDatabase
 import com.campussilencer.app.data.ShieldMode
+import com.campussilencer.app.data.ThemeModePreference
 import com.campussilencer.app.service.CampusGeofenceService
 import com.campussilencer.app.service.CellTowerHelper
+import com.campussilencer.app.ui.PowerSaveThemeHelper
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -36,7 +40,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var audioController: AudioModeController
     private lateinit var settingsRepo: AppSettingsRepository
 
-    // Top status views
+    // Top Header & Status views
     private lateinit var tvStatus: TextView
     private lateinit var tvRingerMode: TextView
     private lateinit var tvEngineLabel: TextView
@@ -44,6 +48,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvVolumePercentage: TextView
     private lateinit var progressVolume: ProgressBar
     private lateinit var imgModeIcon: ImageView
+
+    // Battery Saver & Adaptive Theme Views
+    private lateinit var layoutPowerSaveBanner: LinearLayout
+    private lateinit var tvPowerSaveIcon: TextView
+    private lateinit var tvPowerSaveTitle: TextView
+    private lateinit var tvPowerSaveSub: TextView
+    private lateinit var tvThemeModeBadge: TextView
+    private lateinit var btnThemeAuto: Button
+    private lateinit var btnThemeDark: Button
+    private lateinit var btnThemeLight: Button
 
     // 3 Mode Selector Tabs
     private lateinit var btnTabOpt1: Button
@@ -61,12 +75,14 @@ class MainActivity : AppCompatActivity() {
     // Option 3 (Holiday & Timings) Views
     private lateinit var tvDetectedRegion: TextView
     private lateinit var tvHolidayCountInfo: TextView
+    private lateinit var tvUpcomingHolidayInfo: TextView
+    private lateinit var btnViewHolidays: Button
     private lateinit var btnPickStartTime: LinearLayout
     private lateinit var btnPickEndTime: LinearLayout
     private lateinit var tvStartTimeVal: TextView
     private lateinit var tvEndTimeVal: TextView
 
-    // Universal Controls
+    // Universal Controls & Actions
     private lateinit var layoutLeaveCard: LinearLayout
     private lateinit var switchLeaveToday: Switch
     private lateinit var switchVibrateMode: Switch
@@ -74,6 +90,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnStartService: Button
     private lateinit var btnTestMute: Button
     private lateinit var btnTestUnmute: Button
+    private lateinit var btnEmergencyUnmute: Button
 
     private val statusReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -85,12 +102,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val powerSaveReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == PowerManager.ACTION_POWER_SAVE_MODE_CHANGED) {
+                handlePowerSaveModeChanged()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        settingsRepo = AppSettingsRepository(this)
+        // Ensure matching theme is active immediately on launch
+        PowerSaveThemeHelper.applyTheme(this, settingsRepo.getConfig().themePreference)
+
         setContentView(R.layout.activity_main)
 
         audioController = AudioModeController(this)
-        settingsRepo = AppSettingsRepository(this)
 
         initViews()
         setupListeners()
@@ -107,6 +136,17 @@ class MainActivity : AppCompatActivity() {
         progressVolume = findViewById(R.id.progress_volume)
         imgModeIcon = findViewById(R.id.img_mode_icon)
 
+        // Battery Saver & Theme views
+        layoutPowerSaveBanner = findViewById(R.id.layout_power_save_banner)
+        tvPowerSaveIcon = findViewById(R.id.tv_power_save_icon)
+        tvPowerSaveTitle = findViewById(R.id.tv_power_save_title)
+        tvPowerSaveSub = findViewById(R.id.tv_power_save_sub)
+        tvThemeModeBadge = findViewById(R.id.tv_theme_mode_badge)
+        btnThemeAuto = findViewById(R.id.btn_theme_auto)
+        btnThemeDark = findViewById(R.id.btn_theme_dark)
+        btnThemeLight = findViewById(R.id.btn_theme_light)
+
+        // Tabs
         btnTabOpt1 = findViewById(R.id.btn_tab_opt_1)
         btnTabOpt2 = findViewById(R.id.btn_tab_opt_2)
         btnTabOpt3 = findViewById(R.id.btn_tab_opt_3)
@@ -122,12 +162,14 @@ class MainActivity : AppCompatActivity() {
         // Option 3
         tvDetectedRegion = findViewById(R.id.tv_detected_region)
         tvHolidayCountInfo = findViewById(R.id.tv_holiday_count_info)
+        tvUpcomingHolidayInfo = findViewById(R.id.tv_upcoming_holiday_info)
+        btnViewHolidays = findViewById(R.id.btn_view_holidays)
         btnPickStartTime = findViewById(R.id.btn_pick_start_time)
         btnPickEndTime = findViewById(R.id.btn_pick_end_time)
         tvStartTimeVal = findViewById(R.id.tv_start_time_val)
         tvEndTimeVal = findViewById(R.id.tv_end_time_val)
 
-        // Universal
+        // Universal Controls
         layoutLeaveCard = findViewById(R.id.layout_leave_card)
         switchLeaveToday = findViewById(R.id.switch_leave_today)
         switchVibrateMode = findViewById(R.id.switch_vibrate_mode)
@@ -135,6 +177,7 @@ class MainActivity : AppCompatActivity() {
         btnStartService = findViewById(R.id.btn_start_service)
         btnTestMute = findViewById(R.id.btn_test_mute)
         btnTestUnmute = findViewById(R.id.btn_test_unmute)
+        btnEmergencyUnmute = findViewById(R.id.btn_emergency_unmute)
 
         val config = settingsRepo.getConfig()
         switchLeaveToday.isChecked = config.takingLeaveToday
@@ -147,7 +190,7 @@ class MainActivity : AppCompatActivity() {
 
         updateTimeDisplays(config.collegeStartHour, config.collegeStartMinute, config.collegeEndHour, config.collegeEndMinute)
 
-        // Display current Holiday status for Option 3
+        // Holiday engine setup
         val holidayCheck = HolidayDatabase.checkHoliday()
         if (holidayCheck.first) {
             tvHolidayStatusBadge.text = "🌴 " + holidayCheck.second
@@ -157,11 +200,40 @@ class MainActivity : AppCompatActivity() {
             tvHolidayStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
         }
 
-        // Set active mode tab
+        val nextHoliday = HolidayDatabase.getNextUpcomingHoliday()
+        tvUpcomingHolidayInfo.text = "🎉 Next Gov Holiday: ${nextHoliday.second} (${nextHoliday.first})"
+
+        // Set active mode tab & power save UI
         switchModeTab(config.selectedMode)
+        val isPowerSave = PowerSaveThemeHelper.isPowerSaveModeActive(this)
+        updatePowerSaveBannerUi(isPowerSave, config.themePreference)
     }
 
     private fun setupListeners() {
+        // Theme selector buttons
+        btnThemeAuto.setOnClickListener {
+            settingsRepo.setThemePreference(ThemeModePreference.AUTO_BATTERY_SAVER)
+            PowerSaveThemeHelper.applyTheme(this, ThemeModePreference.AUTO_BATTERY_SAVER)
+            val isPs = PowerSaveThemeHelper.isPowerSaveModeActive(this)
+            updatePowerSaveBannerUi(isPs, ThemeModePreference.AUTO_BATTERY_SAVER)
+            val msg = if (isPs) "⚡ Battery Saver ON → Dark Mode Active" else "☀️ Battery Saver OFF → Light Mode Active"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+
+        btnThemeDark.setOnClickListener {
+            settingsRepo.setThemePreference(ThemeModePreference.FORCE_DARK)
+            PowerSaveThemeHelper.applyTheme(this, ThemeModePreference.FORCE_DARK)
+            updatePowerSaveBannerUi(PowerSaveThemeHelper.isPowerSaveModeActive(this), ThemeModePreference.FORCE_DARK)
+            Toast.makeText(this, "🌙 AMOLED Dark Mode Activated", Toast.LENGTH_SHORT).show()
+        }
+
+        btnThemeLight.setOnClickListener {
+            settingsRepo.setThemePreference(ThemeModePreference.FORCE_LIGHT)
+            PowerSaveThemeHelper.applyTheme(this, ThemeModePreference.FORCE_LIGHT)
+            updatePowerSaveBannerUi(PowerSaveThemeHelper.isPowerSaveModeActive(this), ThemeModePreference.FORCE_LIGHT)
+            Toast.makeText(this, "☀️ Luxury Light Mode Activated", Toast.LENGTH_SHORT).show()
+        }
+
         // Tab switching between Option 1, 2, and 3
         btnTabOpt1.setOnClickListener {
             settingsRepo.setSelectedMode(ShieldMode.CELL_TOWER)
@@ -179,6 +251,19 @@ class MainActivity : AppCompatActivity() {
             settingsRepo.setSelectedMode(ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE)
             switchModeTab(ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE)
             Toast.makeText(this, "Option 3 Selected: One-Time Location & Auto-Holiday Engine", Toast.LENGTH_SHORT).show()
+        }
+
+        // View All Government Holidays Dialog
+        btnViewHolidays.setOnClickListener {
+            val sb = StringBuilder()
+            HolidayDatabase.STATE_HOLIDAYS.forEach { (date, name) ->
+                sb.append("• ").append(date).append(": ").append(name).append("\n\n")
+            }
+            AlertDialog.Builder(this)
+                .setTitle("📅 Official Tamil Nadu & National Gov Holidays")
+                .setMessage(sb.toString().trimEnd())
+                .setPositiveButton("Close", null)
+                .show()
         }
 
         // Option 3: Time Pickers
@@ -258,6 +343,82 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Error: Grant DND permission first!", Toast.LENGTH_LONG).show()
             }
             refreshUi()
+        }
+
+        // Emergency 1-Hour Sound Restore
+        btnEmergencyUnmute.setOnClickListener {
+            audioController.restoreNormalRinger()
+            progressVolume.progress = 80
+            tvVolumePercentage.text = "80% (Restored)"
+            tvVolumePercentage.setTextColor(ContextCompat.getColor(this, R.color.cyan_400))
+            tvStatus.text = "Status: Emergency 1-Hour Sound Restored"
+            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.cyan_400))
+            Toast.makeText(this, "⏰ Ringer restored for 1 Hour! You will not miss any calls.", Toast.LENGTH_LONG).show()
+            refreshUi()
+        }
+    }
+
+    private fun handlePowerSaveModeChanged() {
+        val config = settingsRepo.getConfig()
+        val isPowerSave = PowerSaveThemeHelper.isPowerSaveModeActive(this)
+        if (config.themePreference == ThemeModePreference.AUTO_BATTERY_SAVER) {
+            PowerSaveThemeHelper.applyTheme(this, ThemeModePreference.AUTO_BATTERY_SAVER)
+        }
+        updatePowerSaveBannerUi(isPowerSave, config.themePreference)
+    }
+
+    private fun updatePowerSaveBannerUi(isPowerSave: Boolean, preference: ThemeModePreference) {
+        when (preference) {
+            ThemeModePreference.AUTO_BATTERY_SAVER -> {
+                btnThemeAuto.setBackgroundResource(R.drawable.bg_tab_active)
+                btnThemeAuto.setTextColor(ContextCompat.getColor(this, android.R.color.black))
+                btnThemeDark.setBackgroundResource(R.drawable.bg_tab_inactive)
+                btnThemeDark.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
+                btnThemeLight.setBackgroundResource(R.drawable.bg_tab_inactive)
+                btnThemeLight.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
+
+                if (isPowerSave) {
+                    tvPowerSaveIcon.text = "⚡"
+                    tvPowerSaveTitle.text = "Battery Saver: ON • Dark Mode"
+                    tvPowerSaveSub.text = "Power saving detected! Pitch black AMOLED theme enabled."
+                    tvThemeModeBadge.text = "DARK 🌙"
+                    tvThemeModeBadge.setTextColor(ContextCompat.getColor(this, R.color.amber_400))
+                } else {
+                    tvPowerSaveIcon.text = "☀️"
+                    tvPowerSaveTitle.text = "Battery Saver: OFF • Light Mode"
+                    tvPowerSaveSub.text = "Normal power detected! Luxury porcelain light theme enabled."
+                    tvThemeModeBadge.text = "LIGHT ☀️"
+                    tvThemeModeBadge.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
+                }
+            }
+            ThemeModePreference.FORCE_DARK -> {
+                btnThemeAuto.setBackgroundResource(R.drawable.bg_tab_inactive)
+                btnThemeAuto.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
+                btnThemeDark.setBackgroundResource(R.drawable.bg_tab_active)
+                btnThemeDark.setTextColor(ContextCompat.getColor(this, android.R.color.black))
+                btnThemeLight.setBackgroundResource(R.drawable.bg_tab_inactive)
+                btnThemeLight.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
+
+                tvPowerSaveIcon.text = "🌙"
+                tvPowerSaveTitle.text = "Forced Dark Mode Active"
+                tvPowerSaveSub.text = "Pitch black high contrast theme (User Overridden)"
+                tvThemeModeBadge.text = "DARK 🌙"
+                tvThemeModeBadge.setTextColor(ContextCompat.getColor(this, R.color.amber_400))
+            }
+            ThemeModePreference.FORCE_LIGHT -> {
+                btnThemeAuto.setBackgroundResource(R.drawable.bg_tab_inactive)
+                btnThemeAuto.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
+                btnThemeDark.setBackgroundResource(R.drawable.bg_tab_inactive)
+                btnThemeDark.setTextColor(ContextCompat.getColor(this, R.color.text_slate_400))
+                btnThemeLight.setBackgroundResource(R.drawable.bg_tab_active)
+                btnThemeLight.setTextColor(ContextCompat.getColor(this, android.R.color.black))
+
+                tvPowerSaveIcon.text = "☀️"
+                tvPowerSaveTitle.text = "Forced Light Mode Active"
+                tvPowerSaveSub.text = "Luxury clean porcelain daytime theme (User Overridden)"
+                tvThemeModeBadge.text = "LIGHT ☀️"
+                tvThemeModeBadge.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
+            }
         }
     }
 
@@ -453,6 +614,11 @@ class MainActivity : AppCompatActivity() {
         } else {
             registerReceiver(statusReceiver, filter)
         }
+
+        val psFilter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+        registerReceiver(powerSaveReceiver, psFilter)
+
+        handlePowerSaveModeChanged()
         refreshUi()
     }
 
@@ -460,6 +626,9 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         try {
             unregisterReceiver(statusReceiver)
+        } catch (_: IllegalArgumentException) {}
+        try {
+            unregisterReceiver(powerSaveReceiver)
         } catch (_: IllegalArgumentException) {}
     }
 }

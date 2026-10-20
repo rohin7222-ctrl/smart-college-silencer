@@ -12,9 +12,16 @@ enum class ShieldMode(val title: String, val subtitle: String) {
     ONE_TIME_HOLIDAY_SCHEDULE("Option 3: Auto Holiday & Hours", "One-Time Location • Gov Holidays • Custom Hours")
 }
 
+enum class ThemeModePreference(val displayName: String) {
+    AUTO_BATTERY_SAVER("Auto (Battery Saver Sync)"),
+    FORCE_DARK("AMOLED Dark Mode"),
+    FORCE_LIGHT("Luxury Light Mode")
+}
+
 data class CampusConfig(
     val collegeName: String = "Anna University / College Campus",
     val selectedMode: ShieldMode = ShieldMode.ONE_TIME_HOLIDAY_SCHEDULE,
+    val themePreference: ThemeModePreference = ThemeModePreference.AUTO_BATTERY_SAVER,
     val userRegionState: String = "Tamil Nadu, India",
     val collegeStartTime: String = "08:45",
     val collegeEndTime: String = "16:30",

@@ -13,7 +13,7 @@ import java.util.Locale
 object HolidayDatabase {
 
     // Official State & National Public Holidays for Tamil Nadu & India (2026-2027)
-    private val STATE_HOLIDAYS = mapOf(
+    val STATE_HOLIDAYS = linkedMapOf(
         "01-01" to "New Year's Day",
         "01-14" to "Bhogi Festival",
         "01-15" to "Pongal / Makar Sankranti",
@@ -61,6 +61,21 @@ object HolidayDatabase {
         }
 
         return Pair(false, "Regular Working Day")
+    }
+
+    /**
+     * Gets the next upcoming government public holiday
+     */
+    fun getNextUpcomingHoliday(date: Date = Date()): Pair<String, String> {
+        val currentMonthDay = SimpleDateFormat("MM-dd", Locale.US).format(date)
+        for ((dateKey, name) in STATE_HOLIDAYS) {
+            if (dateKey > currentMonthDay) {
+                return Pair(dateKey, name)
+            }
+        }
+        // If passed end of year, return first next year
+        val first = STATE_HOLIDAYS.entries.first()
+        return Pair(first.key, first.value)
     }
 
     fun getTotalHolidaysCount(): Int = STATE_HOLIDAYS.size
