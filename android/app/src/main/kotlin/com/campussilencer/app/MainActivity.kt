@@ -31,10 +31,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvRingerMode: TextView
     private lateinit var tvDistance: TextView
     private lateinit var tvWifiStatus: TextView
+    private lateinit var tvVolumePercentage: TextView
+    private lateinit var progressVolume: android.widget.ProgressBar
+    private lateinit var layoutLeaveCard: android.widget.LinearLayout
     private lateinit var imgModeIcon: android.widget.ImageView
     private lateinit var switchLeaveToday: Switch
     private lateinit var switchVibrateMode: Switch
-    private lateinit var switchWifiTrigger: Switch
     private lateinit var btnToggleDndPermission: Button
     private lateinit var btnStartService: Button
     private lateinit var btnTestMute: Button
@@ -68,10 +70,12 @@ class MainActivity : AppCompatActivity() {
         tvRingerMode = findViewById(R.id.tv_ringer_mode)
         tvDistance = findViewById(R.id.tv_campus_distance)
         tvWifiStatus = findViewById(R.id.tv_wifi_status)
+        tvVolumePercentage = findViewById(R.id.tv_volume_percentage)
+        progressVolume = findViewById(R.id.progress_volume)
+        layoutLeaveCard = findViewById(R.id.layout_leave_card)
         imgModeIcon = findViewById(R.id.img_mode_icon)
         switchLeaveToday = findViewById(R.id.switch_leave_today)
         switchVibrateMode = findViewById(R.id.switch_vibrate_mode)
-        switchWifiTrigger = findViewById(R.id.switch_wifi_trigger)
         btnToggleDndPermission = findViewById(R.id.btn_dnd_permission)
         btnStartService = findViewById(R.id.btn_start_service)
         btnTestMute = findViewById(R.id.btn_test_mute)
@@ -80,14 +84,14 @@ class MainActivity : AppCompatActivity() {
         val config = settingsRepo.getConfig()
         switchLeaveToday.isChecked = config.takingLeaveToday
         switchVibrateMode.isChecked = config.vibrateOnly
-        switchWifiTrigger.isChecked = config.enableWifiTrigger
-        tvWifiStatus.text = "📶 Wi-Fi: " + config.collegeWifiSsid
+        updateLeaveCardStyle(config.takingLeaveToday)
     }
 
     private fun setupListeners() {
         switchLeaveToday.setOnCheckedChangeListener { _, isChecked ->
             settingsRepo.setTakingLeaveToday(isChecked)
-            Toast.makeText(this, if (isChecked) "Mute paused for today!" else "Normal campus monitoring resumed.", Toast.LENGTH_SHORT).show()
+            updateLeaveCardStyle(isChecked)
+            Toast.makeText(this, if (isChecked) "Mute paused for today! Phone will NOT mute at home." else "Normal college monitoring active.", Toast.LENGTH_SHORT).show()
             refreshUi()
         }
 
@@ -95,11 +99,6 @@ class MainActivity : AppCompatActivity() {
             val config = settingsRepo.getConfig().copy(vibrateOnly = isChecked)
             settingsRepo.saveConfig(config)
             Toast.makeText(this, "Profile: " + (if (isChecked) "Vibrate" else "Silent"), Toast.LENGTH_SHORT).show()
-        }
-
-        switchWifiTrigger.setOnCheckedChangeListener { _, isChecked ->
-            val config = settingsRepo.getConfig().copy(enableWifiTrigger = isChecked)
-            settingsRepo.saveConfig(config)
         }
 
         btnToggleDndPermission.setOnClickListener {
@@ -115,7 +114,10 @@ class MainActivity : AppCompatActivity() {
 
         btnTestMute.setOnClickListener {
             if (audioController.muteForCampus(switchVibrateMode.isChecked)) {
-                Toast.makeText(this, "Test Success: Phone Muted!", Toast.LENGTH_SHORT).show()
+                progressVolume.progress = 0
+                tvVolumePercentage.text = "0% (Muted)"
+                tvVolumePercentage.setTextColor(ContextCompat.getColor(this, R.color.amber_500))
+                Toast.makeText(this, "Test Success: Phone Muted for College!", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(this, "Error: Grant DND permission first!", Toast.LENGTH_LONG).show()
             }
@@ -124,11 +126,22 @@ class MainActivity : AppCompatActivity() {
 
         btnTestUnmute.setOnClickListener {
             if (audioController.restoreNormalRinger()) {
-                Toast.makeText(this, "Test Success: Normal Ringer Restored!", Toast.LENGTH_SHORT).show()
+                progressVolume.progress = 80
+                tvVolumePercentage.text = "80% (Active)"
+                tvVolumePercentage.setTextColor(ContextCompat.getColor(this, R.color.emerald_500))
+                Toast.makeText(this, "Test Success: Normal Ringer Restored for Home!", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(this, "Error: Grant DND permission first!", Toast.LENGTH_LONG).show()
             }
             refreshUi()
+        }
+    }
+
+    private fun updateLeaveCardStyle(isLeave: Boolean) {
+        if (isLeave) {
+            layoutLeaveCard.setBackgroundResource(R.drawable.bg_leave_pill_active)
+        } else {
+            layoutLeaveCard.setBackgroundResource(R.drawable.bg_glass_card)
         }
     }
 
