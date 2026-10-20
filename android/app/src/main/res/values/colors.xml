@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Obsidian & Amber Neon Palette -->
+    <color name="bg_main">#08090C</color>
+    <color name="bg_secondary">#0F1017</color>
+    <color name="card_surface">#141620</color>
+    <color name="card_stroke">#292317</color>
+    <color name="card_stroke_glow">#F59E0B</color>
+
+    <!-- Glowing Amber Accents -->
+    <color name="amber_primary">#F59E0B</color>
+    <color name="amber_light">#FBBF24</color>
+    <color name="amber_dark">#D97706</color>
+    <color name="amber_glow">#33F59E0B</color>
+    <color name="amber_glow_strong">#66F59E0B</color>
+    <color name="amber_text">#FEF3C7</color>
+
+    <!-- Status Colors -->
+    <color name="status_green">#10B981</color>
+    <color name="status_green_glow">#2610B981</color>
+    <color name="status_red">#EF4444</color>
+    <color name="status_blue">#38BDF8</color>
+
+    <!-- Typography -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_tertiary">#64748B</color>
+</resources>

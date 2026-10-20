@@ -1,0 +1,6 @@
+# Python Companion Requirements
+# Note: The core api_server and simulator run with 0 external dependencies (Standard Library)!
+# Optional packages for extended integrations:
+requests>=2.31.0
+fastapi>=0.109.0
+uvicorn>=0.27.0

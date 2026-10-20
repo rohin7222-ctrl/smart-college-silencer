@@ -1,0 +1,24 @@
+# Built outputs
+*.apk
+*.aab
+*.dex
+*.class
+
+# Android build outputs
+android/app/build/
+android/build/
+.gradle/
+build/
+android/.gradle/
+android/app/.cxx/
+.cxx/
+local.properties
+
+# IDE & OS files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+__pycache__/
+*.py[cod]
+*$py.class

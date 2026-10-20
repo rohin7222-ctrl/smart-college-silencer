@@ -1,0 +1,77 @@
+name: Build and Release Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant Execute Permission to Gradle Wrapper
+        run: |
+          chmod +x ./android/gradlew
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartCampusSilencer-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
+        with:
+          tag_name: v1.0.0
+          name: "🎓 Smart Campus Silencer v1.0.0 (Direct APK)"
+          draft: false
+          prerelease: false
+          body: |
+            ## 📱 Smart Campus Silencer APK Download
+            
+            ### 🚀 Installation Guide (மொபைலில் இன்ஸ்டால் செய்ய):
+            1. கீழே உள்ள **`app-debug.apk`** லிங்கை மொபைல் பிரவுசரில் டச் செய்து டவுன்லோட் செய்யவும்.
+            2. டவுன்லோட் ஆனதும் APK ஃபைலை ஓபன் செய்யவும்.
+            3. "Install from Unknown Sources" கேட்கப்பட்டால் **Allow** கொடுக்கவும்.
+            4. ஆப் ஓபன் ஆனதும் **"Grant DND / Silent Permission"** கொடுத்துவிட்டு **"Start Background Geofencing"** கொடுக்கவும்.
+            
+            ### 🌟 Features Included:
+            - **Auto Mute at College Campus (GPS Geofence)**
+            - **Auto Unmute / Normal Ringer when arriving Home**
+            - **"Taking Leave Today" Toggle (Never mutes on holidays/sick leave)**
+            - **College Wi-Fi Auto-Trigger**
+            - **Ultra-low battery consumption (C++ Native Geo Engine)**
+          files: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
