@@ -31,4 +31,21 @@
     <color name="text_slate_400">#94A3B8</color>
     <color name="text_slate_500">#64748B</color>
     <color name="text_slate_600">#475569</color>
+
+    <!-- Legacy / Compatibility Tokens -->
+    <color name="card_surface">#10121A</color>
+    <color name="card_stroke">#222638</color>
+    <color name="card_stroke_glow">#F59E0B</color>
+    <color name="amber_primary">#F59E0B</color>
+    <color name="amber_light">#FBBF24</color>
+    <color name="amber_dark">#D97706</color>
+    <color name="amber_glow">#33F59E0B</color>
+    <color name="amber_glow_strong">#66F59E0B</color>
+    <color name="amber_text">#FEF3C7</color>
+    <color name="status_green">#10B981</color>
+    <color name="status_red">#EF4444</color>
+    <color name="status_blue">#38BDF8</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_tertiary">#64748B</color>
 </resources>
