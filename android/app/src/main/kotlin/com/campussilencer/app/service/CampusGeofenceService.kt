@@ -11,6 +11,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -151,7 +152,7 @@ class CampusGeofenceService : Service(), LocationListener {
         }
 
         // C++ Native Geo-Math Distance Calculation as fallback
-        val distToCampus = NativeGeoEngine.calculateHaversineDistance(
+        val distToCampus = NativeGeoEngine.calculateDistance(
             location.latitude, location.longitude,
             config.collegeLatitude, config.collegeLongitude
         )
