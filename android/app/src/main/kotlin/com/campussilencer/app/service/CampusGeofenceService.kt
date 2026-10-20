@@ -84,12 +84,60 @@ class CampusGeofenceService : Service(), LocationListener {
         // Check if user manually opted out for today (e.g., Absent/Leave)
         if (config.takingLeaveToday) {
             currentState = SilencerState.LEAVE_MODE
-            updateNotification("Leave Today Active: Silent mode paused.")
+            updateNotification("🏖️ Leave Today Active: Silent mode paused.")
             broadcastState(currentState, 0.0)
             return
         }
 
-        // 1. Calculate distance to College Campus using Native C++ engine
+        // Mode 1 (Plan A): Cell Tower ID Detection
+        if (config.selectedMode == com.campussilencer.app.data.ShieldMode.CELL_TOWER) {
+            val currentTower = CellTowerHelper.getCurrentCellTowerId(this)
+            val isAtCollegeTower = (currentTower == config.collegeCellTowerId)
+
+            if (isAtCollegeTower) {
+                if (currentState != SilencerState.INSIDE_CAMPUS) {
+                    currentState = SilencerState.INSIDE_CAMPUS
+                    Log.i(TAG, "Plan A: College Cell Tower Detected! Auto-muting...")
+                    audioController.muteForCampus(config.vibrateOnly)
+                    updateNotification("Inside College (Tower #$currentTower): Phone Muted")
+                }
+            } else {
+                if (currentState == SilencerState.INSIDE_CAMPUS) {
+                    Log.i(TAG, "Plan A: Departed College Tower. Restoring ringer...")
+                    audioController.restoreNormalRinger()
+                    currentState = SilencerState.AT_HOME
+                    updateNotification("Left College: Normal Ringer Restored")
+                }
+            }
+            broadcastState(currentState, 0.0)
+            return
+        }
+
+        // Mode 2 (Plan B): Smart Timetable Schedule Detection
+        if (config.selectedMode == com.campussilencer.app.data.ShieldMode.TIMETABLE) {
+            val nowTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+            val isClassHours = (nowTime >= config.collegeStartTime && nowTime <= config.collegeEndTime)
+
+            if (isClassHours) {
+                if (currentState != SilencerState.INSIDE_CAMPUS) {
+                    currentState = SilencerState.INSIDE_CAMPUS
+                    Log.i(TAG, "Plan B: Timetable Class Active ($nowTime). Auto-muting...")
+                    audioController.muteForCampus(config.vibrateOnly)
+                    updateNotification("Class Hours Active ($nowTime): Phone Muted")
+                }
+            } else {
+                if (currentState == SilencerState.INSIDE_CAMPUS) {
+                    Log.i(TAG, "Plan B: Class Hours Ended ($nowTime). Restoring ringer...")
+                    audioController.restoreNormalRinger()
+                    currentState = SilencerState.AT_HOME
+                    updateNotification("Class Ended: Normal Ringer Restored")
+                }
+            }
+            broadcastState(currentState, 0.0)
+            return
+        }
+
+        // Fallback: GPS Boundary calculation
         val distanceToCampus = NativeGeoEngine.calculateDistance(
             location.latitude, location.longitude,
             config.collegeLatitude, config.collegeLongitude

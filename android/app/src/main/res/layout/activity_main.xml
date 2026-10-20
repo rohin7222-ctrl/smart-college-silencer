@@ -12,7 +12,7 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- Top Header: Logo + App Identity + Live Pulse -->
+        <!-- Top Header: Logo + Brand + Live Pulse -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,8 +21,8 @@
 
             <ImageView
                 android:id="@+id/img_app_logo"
-                android:layout_width="52dp"
-                android:layout_height="52dp"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
                 android:background="@drawable/bg_glass_card"
                 android:contentDescription="Campus Silencer Logo"
                 android:padding="4dp"
@@ -41,13 +41,13 @@
                     android:letterSpacing="0.04"
                     android:text="CAMPUS SILENCER"
                     android:textColor="@color/amber_400"
-                    android:textSize="17sp"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Smart Attendance &amp; Audio Shield"
+                    android:text="Dual-Engine Audio Protection Shield"
                     android:textColor="@color/text_slate_400"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -59,7 +59,7 @@
                 android:background="@drawable/bg_status_badge"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
-                android:text="● ACTIVE"
+                android:text="● SHIELD ON"
                 android:textColor="@color/emerald_500"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -177,7 +177,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="🏫 College: Anna University"
+                        android:text="Active Engine: Plan A (Cell Tower)"
                         android:textColor="@color/text_slate_400"
                         android:textSize="12sp" />
 
@@ -185,14 +185,14 @@
                         android:id="@+id/tv_wifi_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🏡 Home Safe-Zone: Active"
+                        android:text="Zero GPS • 100% Privacy"
                         android:textColor="@color/emerald_500"
                         android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
         </FrameLayout>
 
-        <!-- DND Permission Alert Button (Only shown if missing) -->
+        <!-- DND Permission Banner (Shown only if not granted) -->
         <Button
             android:id="@+id/btn_dnd_permission"
             android:layout_width="match_parent"
@@ -205,18 +205,250 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <!-- Section: Attendance & Holiday Solver Card -->
+        <!-- Dual Mode Settings Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:letterSpacing="0.06"
-            android:text="TODAY'S ATTENDANCE &amp; LEAVE CONTROLS"
+            android:text="SELECT AUTOMATION ENGINE (2 MODES)"
             android:textColor="@color/text_slate_500"
             android:textSize="11sp"
             android:textStyle="bold" />
 
-        <!-- 1. The Core Solution: Taking Leave Today Card -->
+        <!-- Segmented Tab Switcher for Plan A vs Plan B -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_glass_card"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <Button
+                android:id="@+id/btn_tab_mode_a"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tab_active"
+                android:text="📡 Plan A: Cell Tower"
+                android:textColor="#000000"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_tab_mode_b"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tab_inactive"
+                android:text="🕒 Plan B: Timetable"
+                android:textColor="@color/text_slate_400"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- CONTAINER FOR PLAN A (Cell Tower ID Mode) -->
+        <LinearLayout
+            android:id="@+id/layout_plan_a"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_glass_card"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📡 Mobile Cell Tower Shield"
+                    android:textColor="@color/text_white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_status_badge"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="NO GPS NEEDED"
+                    android:textColor="@color/emerald_500"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Uses your SIM mobile network tower. Works even if GPS &amp; Wi-Fi are turned OFF!"
+                android:textColor="@color/text_slate_400"
+                android:textSize="12sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="12dp"
+                android:background="@color/border_subtle" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Connected Tower:"
+                        android:textColor="@color/text_slate_500"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tv_connected_tower"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cell ID #41528"
+                        android:textColor="@color/emerald_500"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="College Tower:"
+                        android:textColor="@color/text_slate_500"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tv_college_tower"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cell ID #41528"
+                        android:textColor="@color/amber_400"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_lock_current_tower"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_outline_button"
+                android:text="📍 Set Current Tower as College Campus"
+                android:textColor="@color/amber_400"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- CONTAINER FOR PLAN B (Smart Timetable Mode) -->
+        <LinearLayout
+            android:id="@+id/layout_plan_b"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_glass_card"
+            android:orientation="vertical"
+            android:padding="18dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🕒 Smart Academic Timetable"
+                    android:textColor="@color/text_white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_status_badge"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="SCHEDULE ACTIVE"
+                    android:textColor="@color/emerald_500"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Mutes phone during active class hours and automatically restores at 04:30 PM."
+                android:textColor="@color/text_slate_400"
+                android:textSize="12sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="12dp"
+                android:background="@color/border_subtle" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Class Hours:\n08:45 AM - 04:30 PM"
+                    android:textColor="@color/text_slate_100"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Auto-Restore:\n04:30 PM Every Day"
+                    android:textColor="@color/emerald_500"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- UNIVERSAL CORE: Taking Leave Today Card (Works for both Plan A & B) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:letterSpacing="0.06"
+            android:text="LEAVE &amp; SICK DAY OVERRIDE (CLIENT PROBLEM SOLVER)"
+            android:textColor="@color/text_slate_500"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:id="@+id/layout_leave_card"
             android:layout_width="match_parent"
@@ -250,7 +482,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
-                        android:text="Pause mute for today (Holidays / Sick leave)"
+                        android:text="Pause all silent automation for today"
                         android:textColor="@color/amber_300"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -267,12 +499,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="💡 Solves the core issue: When toggled, the phone will NEVER mute today, even on Mondays or working days. All incoming calls at home will ring loud and clear!"
+                android:text="💡 When toggled ON, the phone will NEVER mute today, even on Mondays. All incoming calls at home will ring loud and clear!"
                 android:textColor="@color/text_slate_400"
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- 2. Silent vs Vibrate Profile Card -->
+        <!-- Profile Toggle: Vibrate vs Silent -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -316,47 +548,6 @@
                     android:layout_height="wrap_content"
                     android:thumbTint="@color/amber_500"
                     android:trackTint="@color/border_subtle" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- 3. Smart Schedule Preview Card -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_glass_card"
-            android:orientation="vertical"
-            android:padding="18dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🕒 Class Hours &amp; Schedule Window"
-                android:textColor="@color/text_white"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Class Timing:\n08:45 AM - 04:30 PM"
-                    android:textColor="@color/text_slate_100"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Auto Unmute:\nUpon Exit / Reaching Home"
-                    android:textColor="@color/emerald_500"
-                    android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -410,7 +601,7 @@
             android:layout_marginTop="22dp"
             android:layout_marginBottom="14dp"
             android:gravity="center"
-            android:text="Smart Campus Silencer • Built with Kotlin, Java, C++ &amp; Python"
+            android:text="Smart Campus Silencer • Plan A (Cell Tower) + Plan B (Timetable)"
             android:textColor="@color/text_slate_600"
             android:textSize="11sp" />
 
